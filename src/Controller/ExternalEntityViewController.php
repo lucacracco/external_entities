@@ -7,7 +7,7 @@
 
 namespace Drupal\external_entities\Controller;
 
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Utility\Html;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\Controller\EntityViewController;
 
@@ -30,7 +30,7 @@ class ExternalEntityViewController extends EntityViewController {
       $build['#attached']['html_head_link'][] = array(
         array(
           'rel' => $rel,
-          'href' => $entity->url($rel),
+          'href' => $entity->toUrl($rel),
         ),
         TRUE,
       );
@@ -40,7 +40,7 @@ class ExternalEntityViewController extends EntityViewController {
         $build['#attached']['html_head_link'][] = array(
           array(
             'rel' => 'shortlink',
-            'href' => $entity->url($rel, array('alias' => TRUE)),
+            'href' => $entity->toUrl($rel, array('alias' => TRUE)),
           ),
           TRUE,
         );
@@ -60,7 +60,7 @@ class ExternalEntityViewController extends EntityViewController {
    *   The page title.
    */
   public function title(EntityInterface $entity) {
-    return SafeMarkup::checkPlain($this->entityManager->getTranslationFromContext($entity)->label());
+    return Html::escape($this->entityManager->getTranslationFromContext($entity)->label());
   }
 
 }
