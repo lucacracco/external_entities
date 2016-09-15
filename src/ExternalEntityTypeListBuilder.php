@@ -72,7 +72,7 @@ class ExternalEntityTypeListBuilder extends ConfigEntityListBuilder {
    */
   public function buildRow(EntityInterface $entity) {
     $row['title'] = array(
-      'data' => $this->getLabel($entity),
+      'data' => $this->label($entity),
       'class' => array('menu-label'),
     );
     $row['description'] = Xss::filterAdmin($entity->getDescription());
