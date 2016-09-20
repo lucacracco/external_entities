@@ -1,28 +1,36 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\external_entities\Plugin\ExternalEntityStorageClient\RestClient.
- */
+namespace Drupal\external_entities\Plugin\ExternalEntityStorageConnection;
 
-namespace Drupal\external_entities\Plugin\ExternalEntityStorageClient;
+use Drupal\external_entities\Plugin\ClientBase;
 
-use Drupal\external_entities\ExternalEntityStorageClientBase;
 
 /**
  * Wiki implementation of an external entity storage client.
  *
- * @ExternalEntityStorageClient(
+ * @ExternalEntityStorageConnection(
  *   id = "wiki_client",
- *   name = "Wiki"
+ *   name = "Wiki",
+ *   description = "Wiki implementation of an external entity storage client",
+ *   settings = {
+ *    "default_limit" = 10,
+ *    "page_parameter" = "page",
+ *    "page_size_parameter" = "pagesize",
+ *    "page_parameter_type" = "pagenum",
+ *    "page_size_parameter_type" = "pagesize",
+ *    "header_name" = NULL,
+ *    "key" = NULL,
+ *    "list" = {},
+ *    "single" = {},
+ *   },
  * )
  */
-class WikiClient extends ExternalEntityStorageClientBase {
+class WikiClient extends ClientBase {
 
   /**
    * {@inheritdoc}
    */
-  public function delete(\Drupal\external_entities\ExternalEntityInterface $entity) {
+  public function delete(\Drupal\external_entities\Entity\ExternalEntityInterface $entity) {
     $this->httpClient->delete(
       $this->configuration['endpoint'] . '/' . $entity->externalId(),
       ['headers' => $this->getHttpHeaders()]
@@ -46,14 +54,15 @@ class WikiClient extends ExternalEntityStorageClientBase {
       $this->configuration['endpoint'],
       $options
     );
-    $result = $this->decoder->getDecoder($this->configuration['format'])->decode($response->getBody());
+    $result = $this->decoder->getDecoder($this->configuration['format'])
+      ->decode($response->getBody());
     return (object) $result['query']['pages'][$id];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function save(\Drupal\external_entities\ExternalEntityInterface $entity) {
+  public function save(\Drupal\external_entities\Entity\ExternalEntityInterface $entity) {
     if ($entity->externalId()) {
       $response = $this->httpClient->put(
         $this->configuration['endpoint'] . '/' . $entity->externalId(),
@@ -76,7 +85,8 @@ class WikiClient extends ExternalEntityStorageClientBase {
     }
 
     // @todo: is it standard REST to return the new entity?
-    $object = (object) $this->decoder->getDecoder($this->configuration['format'])->decode($response->getBody());
+    $object = (object) $this->decoder->getDecoder($this->configuration['format'])
+      ->decode($response->getBody());
     $entity->mapObject($object);
     return $result;
   }
@@ -92,7 +102,8 @@ class WikiClient extends ExternalEntityStorageClientBase {
         'headers' => $this->getHttpHeaders()
       ]
     );
-    $results = $this->decoder->getDecoder($this->configuration['format'])->decode($response->getBody());
+    $results = $this->decoder->getDecoder($this->configuration['format'])
+      ->decode($response->getBody());
     $results = $results['query']['categorymembers'];
     foreach ($results as &$result) {
       $result = ((object) $result);

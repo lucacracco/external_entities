@@ -6,6 +6,7 @@
 
 use Drupal\Component\Utility\Xss;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Url;
 
 /**
  * Implements hook_theme().
@@ -33,6 +34,7 @@ function external_entities_theme() {
 function template_preprocess_external_entities_add_list(&$variables) {
   $variables['types'] = array();
   if (!empty($variables['external_entity_types'])) {
+    /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $type */
     foreach ($variables['external_entity_types'] as $type) {
       $variables['types'][$type->id()] = array(
         'type' => $type->id(),

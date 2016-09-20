@@ -1,59 +1,47 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\external_entities\ExternalEntityStorage.
- */
+namespace Drupal\external_entities\Storage;
 
-namespace Drupal\external_entities;
-
+use Drupal\Core\Entity\EntityInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Component\Plugin\PluginManagerInterface;
-use Drupal\external_entities\ResponseDecoderFactoryInterface;
-use GuzzleHttp\ClientInterface;
+use Drupal\external_entities\Decoder\ResponseDecoderFactoryInterface;
 use Drupal\Core\Entity\ContentEntityStorageBase;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
 
 /**
- * Defines the controller class for nodes.
+ * Defines the controller class for external entities.
  *
  * This extends the base storage class, adding required special handling for
- * node entities.
+ * external entities.
  */
 class ExternalEntityStorage extends ContentEntityStorageBase {
 
   /**
-   * The external storage client manager.
+   * The external storage connection manager.
    *
    * @var \Drupal\Component\Plugin\PluginManagerInterface
    */
-  protected $storageClientManager;
+  protected $storageConnectionManager;
 
   /**
-   * Storage client instances.
+   * Storage connection instances.
    *
-   * @var \Drupal\external_entities\ExternalEntityStorageClientInterface[]
+   * @var \Drupal\external_entities\Plugin\ExternalEntityStorageConnectionInterface[]
    */
-  protected $storageClients = [];
+  protected $storageConnections = [];
 
   /**
    * The decoder.
    *
-   * @var \Drupal\external_entities\ResponseDecoderFactoryInterface
+   * @var \Drupal\external_entities\Decoder\ResponseDecoderFactoryInterface
    */
   protected $decoder;
-
-  /**
-   * The HTTP client to fetch the data with.
-   *
-   * @var \GuzzleHttp\ClientInterface
-   */
-  protected $httpClient;
 
   /**
    * {@inheritdoc}
@@ -63,9 +51,8 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
       $entity_type,
       $container->get('entity.manager'),
       $container->get('cache.entity'),
-      $container->get('plugin.manager.external_entity_storage_client'),
-      $container->get('external_entity.storage_client.response_decoder_factory'),
-      $container->get('http_client')
+      $container->get('plugin.manager.external_entity_storage_connection'),
+      $container->get('external_entity.storage_connection.response_decoder_factory')
     );
   }
 
@@ -78,46 +65,50 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
    *   The entity manager.
    * @param \Drupal\Core\Cache\CacheBackendInterface $cache
    *   The cache backend to be used.
-   * @param \Drupal\Component\Plugin\PluginManagerInterface $storage_client_manager
-   *   The storage client manager.
+   * @param \Drupal\Component\Plugin\PluginManagerInterface $storage_connection_manager
+   *   The storage connection manager.
    */
-  public function __construct(EntityTypeInterface $entity_type, EntityManagerInterface $entity_manager, CacheBackendInterface $cache, PluginManagerInterface $storage_client_manager, ResponseDecoderFactoryInterface $decoder, ClientInterface $http_client) {
+  public function __construct(EntityTypeInterface $entity_type, EntityManagerInterface $entity_manager, CacheBackendInterface $cache, PluginManagerInterface $storage_connection_manager, ResponseDecoderFactoryInterface $decoder) {
     parent::__construct($entity_type, $entity_manager, $cache);
-    $this->storageClientManager = $storage_client_manager;
+    $this->storageConnectionManager = $storage_connection_manager;
     $this->decoder = $decoder;
-    $this->httpClient = $http_client;
   }
 
   /**
-   * Get the storage client for a bundle.
+   * Get the storage connection for a bundle.
    *
    * @param string $bundle_id
-   *   The bundle to get the storage client for.
+   *   The bundle to get the storage connection for.
    *
-   * @return \Drupal\external_entities\ExternalEntityStorageClientInterface
-   *   The external entity storage client.
+   * @return \Drupal\external_entities\Plugin\ExternalEntityStorageConnectionInterface
+   *   The external entity storage connection.
    */
-  protected function getStorageClient($bundle_id) {
-    if (!isset($this->storageClients[$bundle_id])) {
-      $bundle = $this->entityManager->getStorage('external_entity_type')->load($bundle_id);
-      $config = [
-        'http_client' => $this->httpClient,
-        'decoder' => $this->decoder,
-        'endpoint' => $bundle->getEndpoint(),
-        'format' => $bundle->getFormat(),
-        'http_headers' => [],
-        'parameters' => $bundle->getParameters(),
-      ];
-      $api_key_settings = $bundle->getApiKeySettings();
-      if (!empty($api_key_settings['header_name']) && !empty($api_key_settings['key'])) {
-        $config['http_headers'][$api_key_settings['header_name']] = $api_key_settings['key'];
-      }
-      $this->storageClients[$bundle_id] = $this->storageClientManager->createInstance(
-        $bundle->getClient(),
-        $config
-      );
+  protected function getStorageConnection($bundle_id) {
+    if (!isset($this->storageConnections[$bundle_id])) {
+      /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $bundle */
+      $bundle = $this->entityManager->getStorage('external_entity_type')
+        ->load($bundle_id);
+      $connection_plugin = $this->storageConnectionManager->getDefinition($bundle->getConnection());
+
+      // TODO: load plugin Connection.
+//      $config = [
+//        'http_client' => $this->httpClient,
+//        'decoder' => $this->decoder,
+//        'endpoint' => $client_plugin->getEndpoint(),
+//        'format' => $client_plugin->getFormat(),
+//        'http_headers' => [],
+//        'parameters' => $client_plugin->getParameters(),
+//      ];
+//      $api_key_settings = $client_plugin->getApiKeySettings();
+//      if (!empty($api_key_settings['header_name']) && !empty($api_key_settings['key'])) {
+//        $config['http_headers'][$api_key_settings['header_name']] = $api_key_settings['key'];
+//      }
+//      $this->storageClients[$bundle_id] = $this->storageClientManager->createInstance(
+//        $bundle->getClient(),
+//        $config
+//      );
     }
-    return $this->storageClients[$bundle_id];
+    return $this->storageConnections[$bundle_id];
   }
 
   /**
@@ -132,7 +123,9 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
    */
   public function preDelete(array $entities) {
     foreach ($entities as $entity) {
-      $bundle = $this->entityManager->getStorage('external_entity_type')->load($entity->bundle());
+      /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $bundle */
+      $bundle = $this->entityManager->getStorage('external_entity_type')
+        ->load($entity->bundle());
       if ($bundle && $bundle->isReadOnly()) {
         throw new EntityStorageException($this->t('Can not delete read-only external entities.'));
       }
@@ -145,7 +138,7 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
   protected function doDelete($entities) {
     // Do the actual delete.
     foreach ($entities as $entity) {
-      $this->getStorageClient($entity->bundle())->delete($entity);
+      $this->getStorageConnection($entity->bundle())->delete($entity);
     }
   }
 
@@ -153,17 +146,18 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
    * {@inheritdoc}
    */
   protected function doLoadMultiple(array $ids = NULL) {
-    $entities = array();
+    $entities = [];
 
     foreach ($ids as $id) {
       if (strpos($id, '-')) {
         list($bundle, $external_id) = explode('-', $id);
-        $entities[$id] = $this->create([$this->entityType->getKey('bundle') => $bundle])->mapObject($this->getStorageClient($bundle)->load($external_id))->enforceIsNew(FALSE);
+        $entities[$id] = $this->create([$this->entityType->getKey('bundle') => $bundle])
+          ->mapObject($this->getStorageConnection($bundle)->load($external_id))
+          ->enforceIsNew(FALSE);
       }
     }
     return $entities;
   }
-
 
   /**
    * Acts on an entity before the presave hook is invoked.
@@ -176,16 +170,19 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
    * @throws EntityStorageException
    */
   public function preSave(\Drupal\Core\Entity\EntityInterface $entity) {
-    $bundle = $this->entityManager->getStorage('external_entity_type')->load($entity->bundle());
+    /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $bundle */
+    $bundle = $this->entityManager->getStorage('external_entity_type')
+      ->load($entity->bundle());
     if ($bundle && $bundle->isReadOnly()) {
       throw new EntityStorageException($this->t('Can not save read-only external entities.'));
     }
   }
+
   /**
    * {@inheritdoc}
    */
-  protected function doSave($id, \Drupal\Core\Entity\EntityInterface $entity) {
-    return $this->getStorageClient($entity->bundle())->save($entity);
+  protected function doSave($id, EntityInterface $entity) {
+    return $this->getStorageConnection($entity->bundle())->save($entity);
   }
 
   /**
@@ -198,7 +195,7 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
   /**
    * {@inheritdoc}
    */
-  protected function has($id, \Drupal\Core\Entity\EntityInterface $entity) {
+  protected function has($id, EntityInterface $entity) {
     return !$entity->isNew();
   }
 
@@ -223,14 +220,14 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
   /**
    * {@inheritdoc}
    */
-  protected function doSaveFieldItems(ContentEntityInterface $entity, array $names = array()) {
+  protected function doSaveFieldItems(ContentEntityInterface $entity, array $names = []) {
   }
 
   /**
    * {@inheritdoc}
    */
   protected function readFieldItemsToPurge(FieldDefinitionInterface $field_definition, $batch_size) {
-    return array();
+    return [];
   }
 
   /**
@@ -250,7 +247,7 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
    * {@inheritdoc}
    */
   public function hasData() {
-    return TRUE;
+    return FALSE;
   }
 
 }

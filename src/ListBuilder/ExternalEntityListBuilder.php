@@ -5,7 +5,7 @@
  * Contains \Drupal\external_entities\ExternalEntityListBuilder.
  */
 
-namespace Drupal\external_entities;
+namespace Drupal\external_entities\ListBuilder;
 
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Entity\EntityInterface;
@@ -76,10 +76,10 @@ class ExternalEntityListBuilder extends EntityListBuilder {
       ->sort($keys['id']);
 
     $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())->load($this->bundle);
-    $pager_settings = $bundle->getPagerSettings();
-    if (!empty($pager_settings['page_parameter']) && !empty($pager_settings['page_size_parameter'])) {
-      $query->pager($pager_settings['default_limit']);
-    }
+//    $pager_settings = $bundle->getPagerSettings();
+//    if (!empty($pager_settings['page_parameter']) && !empty($pager_settings['page_size_parameter'])) {
+//      $query->pager($pager_settings['default_limit']);
+//    }
 
     return $query->execute();
   }

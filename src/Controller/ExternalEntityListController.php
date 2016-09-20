@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\external_entities\Entity\Controller\ExternalEntityListController.
+ * Contains \Drupal\external_entities\Controller\ExternalEntityListController.
  */
 
-namespace Drupal\external_entities\Entity\Controller;
+namespace Drupal\external_entities\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 

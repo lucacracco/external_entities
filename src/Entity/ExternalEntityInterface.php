@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\external_entities\ExternalEntityInterface.
+ * Contains \Drupal\external_entities\Entity\ExternalEntityInterface.
  */
 
-namespace Drupal\external_entities;
+namespace Drupal\external_entities\Entity;
 
 use Drupal\Core\Entity\ContentEntityInterface;
 

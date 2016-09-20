@@ -12,7 +12,7 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\Query\QueryBase;
 use Drupal\Core\Entity\Query\QueryFactoryInterface;
 use Drupal\Component\Plugin\PluginManagerInterface;
-use Drupal\external_entities\ResponseDecoderFactoryInterface;
+use Drupal\external_entities\Decoder\ResponseDecoderFactoryInterface;
 use GuzzleHttp\ClientInterface;
 
 /**
@@ -30,16 +30,16 @@ class QueryFactory implements QueryFactoryInterface {
   protected $namespaces;
 
   /**
-   * The external storage client manager.
+   * The external storage connection manager.
    *
    * @var \Drupal\Component\Plugin\PluginManagerInterface
    */
-  protected $storageClientManager;
+  protected $storageConenctionManager;
 
   /**
    * The decoder.
    *
-   * @var \Drupal\external_entities\ResponseDecoderFactoryInterface
+   * @var \Drupal\external_entities\Decoder\ResponseDecoderFactoryInterface
    */
   protected $decoder;
 
@@ -59,10 +59,12 @@ class QueryFactory implements QueryFactoryInterface {
 
   /**
    * Constructs a QueryFactory object.
+   *
+   * {@inheritdoc}
    */
-  public function __construct(PluginManagerInterface $storage_client_manager, ResponseDecoderFactoryInterface $decoder, ClientInterface $http_client, EntityManagerInterface $entity_manager) {
+  public function __construct(PluginManagerInterface $storage_connection_manager, ResponseDecoderFactoryInterface $decoder, ClientInterface $http_client, EntityManagerInterface $entity_manager) {
     $this->namespaces = QueryBase::getNamespaces($this);
-    $this->storageClientManager = $storage_client_manager;
+    $this->storageConenctionManager = $storage_connection_manager;
     $this->decoder = $decoder;
     $this->httpClient = $http_client;
     $this->entityManager = $entity_manager;
@@ -76,7 +78,7 @@ class QueryFactory implements QueryFactoryInterface {
       throw new QueryException("External entity queries do not support OR conditions.");
     }
     $class = QueryBase::getClass($this->namespaces, 'Query');
-    return new $class($entity_type, $conjunction, $this->namespaces, $this->storageClientManager, $this->decoder, $this->httpClient, $this->entityManager);
+    return new $class($entity_type, $conjunction, $this->namespaces, $this->storageConenctionManager, $this->decoder, $this->httpClient, $this->entityManager);
   }
 
   /**

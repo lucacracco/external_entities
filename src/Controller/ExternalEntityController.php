@@ -7,14 +7,10 @@
 
 namespace Drupal\external_entities\Controller;
 
-use Drupal\Component\Utility\SafeMarkup;
-use Drupal\Component\Utility\Xss;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Render\RendererInterface;
-use Drupal\Core\Url;
-use Drupal\external_entities\ExternalEntityTypeInterface;
-use Drupal\external_entities\ExternalEntityInterface;
+use Drupal\external_entities\Entity\ExternalEntityTypeInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -62,11 +58,16 @@ class ExternalEntityController extends ControllerBase implements ContainerInject
    * @see node_menu()
    */
   public function addPage() {
-    $content = array();
+    $content = [];
 
     // Only use node types the user has access to.
-    foreach ($this->entityManager()->getStorage('external_entity_type')->loadMultiple() as $type) {
-      if ($this->entityManager()->getAccessControlHandler('external_entity')->createAccess($type->id())) {
+    foreach ($this->entityManager()
+               ->getStorage('external_entity_type')
+               ->loadMultiple() as $type) {
+      if ($this->entityManager()
+        ->getAccessControlHandler('external_entity')
+        ->createAccess($type->id())
+      ) {
         $content[$type->id()] = $type;
       }
     }
@@ -74,28 +75,28 @@ class ExternalEntityController extends ControllerBase implements ContainerInject
     // Bypass the node/add listing if only one content type is available.
     if (count($content) == 1) {
       $type = array_shift($content);
-      return $this->redirect('external_entity.add', array('external_entity_type' => $type->id()));
+      return $this->redirect('external_entity.add', ['external_entity_type' => $type->id()]);
     }
 
-    return array(
+    return [
       '#theme' => 'external_entities_add_list',
       '#content' => $content,
-    );
+    ];
   }
 
   /**
    * Provides the node submission form.
    *
-   * @param \Drupal\external_entities\ExternalEntityTypeInterface $external_entity_type
+   * @param \Drupal\external_entities\Entity\ExternalEntityTypeInterface $external_entity_type
    *   The external type entity for the external entity.
    *
    * @return array
    *   An external entity submission form.
    */
   public function add(ExternalEntityTypeInterface $external_entity_type) {
-    $entity = $this->entityManager()->getStorage('external_entity')->create(array(
+    $entity = $this->entityManager()->getStorage('external_entity')->create([
       'type' => $external_entity_type->id(),
-    ));
+    ]);
 
     $form = $this->entityFormBuilder()->getForm($entity);
 
@@ -105,14 +106,14 @@ class ExternalEntityController extends ControllerBase implements ContainerInject
   /**
    * The _title_callback for the external_entity.add route.
    *
-   * @param \Drupal\external_entities\ExternalEntityTypeInterface $external_entity_type
+   * @param \Drupal\external_entities\Entity\ExternalEntityTypeInterface $external_entity_type
    *   The current external entity.
    *
    * @return string
    *   The page title.
    */
   public function addPageTitle(ExternalEntityTypeInterface $external_entity_type) {
-    return $this->t('Create @name', array('@name' => $external_entity_type->label()));
+    return $this->t('Create @name', ['@name' => $external_entity_type->label()]);
   }
 
 }

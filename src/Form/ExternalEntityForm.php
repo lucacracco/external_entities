@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Definition of Drupal\external_entities\ExternalEntityForm.
+ * Definition of Drupal\external_entities\Form\ExternalEntityForm.
  */
 
-namespace Drupal\external_entities;
+namespace Drupal\external_entities\Form;
 
 use Drupal\Core\Entity\ContentEntityForm;
 use Drupal\Core\Form\FormStateInterface;

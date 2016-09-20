@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\external_entities\Entity\ExternalEntityRouteProvider.
+ * Contains \Drupal\external_entities\Routing\ExternalEntityRouteProvider.
  */
 
-namespace Drupal\external_entities\Entity;
+namespace Drupal\external_entities\Routing;
 
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\Routing\EntityRouteProviderInterface;
@@ -20,7 +20,7 @@ class ExternalEntityRouteProvider implements EntityRouteProviderInterface {
   /**
    * {@inheritdoc}
    */
-  public function getRoutes( EntityTypeInterface $entity_type) {
+  public function getRoutes(EntityTypeInterface $entity_type) {
     $route_collection = new RouteCollection();
     $route = (new Route('/external-entity/{external_entity}'))
       ->addDefaults([

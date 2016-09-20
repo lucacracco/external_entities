@@ -20,30 +20,30 @@ class ExternalEntityViewController extends EntityViewController {
    * {@inheritdoc}
    */
   public function view(EntityInterface $entity, $view_mode = 'full', $langcode = NULL) {
-    $build = array('external_entities' => parent::view($entity));
+    $build = ['external_entities' => parent::view($entity)];
 
     $build['#title'] = $build['external_entities']['#title'];
     unset($build['external_entities']['#title']);
 
     foreach ($entity->uriRelationships() as $rel) {
       // Set the node path as the canonical URL to prevent duplicate content.
-      $build['#attached']['html_head_link'][] = array(
-        array(
+      $build['#attached']['html_head_link'][] = [
+        [
           'rel' => $rel,
           'href' => $entity->url($rel),
-        ),
+        ],
         TRUE,
-      );
+      ];
 
       if ($rel == 'canonical') {
         // Set the non-aliased canonical path as a default shortlink.
-        $build['#attached']['html_head_link'][] = array(
-          array(
+        $build['#attached']['html_head_link'][] = [
+          [
             'rel' => 'shortlink',
-            'href' => $entity->url($rel, array('alias' => TRUE)),
-          ),
+            'href' => $entity->url($rel, ['alias' => TRUE]),
+          ],
           TRUE,
-        );
+        ];
       }
     }
 
@@ -60,7 +60,8 @@ class ExternalEntityViewController extends EntityViewController {
    *   The page title.
    */
   public function title(EntityInterface $entity) {
-    return SafeMarkup::checkPlain($this->entityManager->getTranslationFromContext($entity)->label());
+    return SafeMarkup::checkPlain($this->entityManager->getTranslationFromContext($entity)
+      ->label());
   }
 
 }

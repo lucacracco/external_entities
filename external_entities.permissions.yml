@@ -8,4 +8,4 @@ view external entity list page:
   description: 'View the overview page of external entities.'
 
 permission_callbacks:
-  - \Drupal\external_entities\ExternalEntityPermissions::ExternalEntityTypePermissions
+  - \Drupal\external_entities\Entity\ExternalEntityPermissions::ExternalEntityTypePermissions

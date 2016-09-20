@@ -1,10 +1,10 @@
 <?php
 /**
  * @file
- * Contains \Drupal\external_entities\ResponseDecoderFactory.
+ * Contains \Drupal\external_entities\Decoder\ResponseDecoderFactory.
  */
 
-namespace Drupal\external_entities;
+namespace Drupal\external_entities\Decoder;
 
 use Drupal\Component\Serialization\SerializationInterface;
 

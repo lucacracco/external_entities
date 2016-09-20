@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\external_entities\ExternalEntityAccessControlHandler.
+ * Contains \Drupal\external_entities\Access\ExternalEntityAccessControlHandler.
  */
 
-namespace Drupal\external_entities;
+namespace Drupal\external_entities\Access;
 
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityHandlerInterface;
@@ -55,7 +55,6 @@ class ExternalEntityAccessControlHandler extends EntityAccessControlHandler impl
     );
   }
 
-
   /**
    * {@inheritdoc}
    */
@@ -66,7 +65,9 @@ class ExternalEntityAccessControlHandler extends EntityAccessControlHandler impl
       return $return_as_object ? $result : $result->isAllowed();
     }
     if ($operation !== 'view') {
-      $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())->load($entity->bundle());
+      /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $bundle */
+      $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())
+        ->load($entity->bundle());
       if ($bundle->isReadOnly()) {
         $result = AccessResult::forbidden()->cachePerPermissions();
       }
@@ -82,13 +83,16 @@ class ExternalEntityAccessControlHandler extends EntityAccessControlHandler impl
   /**
    * {@inheritdoc}
    */
-  public function createAccess($entity_bundle = NULL, AccountInterface $account = NULL, array $context = array(), $return_as_object = FALSE) {
+  public function createAccess($entity_bundle = NULL, AccountInterface $account = NULL, array $context = [], $return_as_object = FALSE) {
     $account = $this->prepareUser($account);
-    $result = parent::createAccess($entity_bundle, $account, $context, TRUE)->cachePerPermissions();
+    $result = parent::createAccess($entity_bundle, $account, $context, TRUE)
+      ->cachePerPermissions();
     if ($result->isForbidden()) {
       return $return_as_object ? $result : $result->isAllowed();
     }
-    $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())->load($entity_bundle);
+    /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $bundle */
+    $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())
+      ->load($entity_bundle);
     if ($bundle->isReadOnly()) {
       $result = AccessResult::forbidden()->cachePerPermissions();
     }
@@ -110,7 +114,9 @@ class ExternalEntityAccessControlHandler extends EntityAccessControlHandler impl
       return $result;
     }
     if ($operation !== 'view') {
-      $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())->load($entity->bundle());
+      /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $bundle */
+      $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())
+        ->load($entity->bundle());
       if ($bundle->isReadOnly()) {
         $result = AccessResult::forbidden()->cachePerPermissions();
       }
@@ -129,7 +135,9 @@ class ExternalEntityAccessControlHandler extends EntityAccessControlHandler impl
     if (!is_null($entity_bundle)) {
       return AccessResult::neutral()->cachePerPermissions();
     }
-    $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())->load($entity_bundle);
+    $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())
+      ->load($entity_bundle);
+    /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $bundle */
     if ($bundle->isReadOnly()) {
       $result = AccessResult::forbidden()->cachePerPermissions();
     }
@@ -147,7 +155,9 @@ class ExternalEntityAccessControlHandler extends EntityAccessControlHandler impl
     if ($operation !== 'view') {
       $bundle_id = $field_definition->getTargetBundle();
       if ($bundle_id) {
-        $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())->load($bundle_id);
+        /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $bundle */
+        $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())
+          ->load($bundle_id);
         if ($bundle->isReadOnly()) {
           $result = FALSE;
         }

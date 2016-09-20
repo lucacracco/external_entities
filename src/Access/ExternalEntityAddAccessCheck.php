@@ -11,7 +11,7 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Routing\Access\AccessInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\external_entities\ExternalEntityTypeInterface;
+use Drupal\external_entities\Entity\ExternalEntityTypeInterface;
 
 /**
  * Determines access to for external entity add pages.
@@ -42,7 +42,7 @@ class ExternalEntityAddAccessCheck implements AccessInterface {
    *
    * @param \Drupal\Core\Session\AccountInterface $account
    *   The currently logged in account.
-   * @param \Drupal\external_entities\ExternalEntityTypeInterface $external_entity_type
+   * @param \Drupal\external_entities\Entity\ExternalEntityTypeInterface $external_entity_type
    *   (optional) The node type. If not specified, access is allowed if there
    *   exists at least one node type for which the user may create a node.
    *
@@ -56,7 +56,8 @@ class ExternalEntityAddAccessCheck implements AccessInterface {
       return $access_control_handler->createAccess($external_entity_type->id(), $account, [], TRUE);
     }
 
-    $types = $this->entityManager->getStorage('external_entity_type')->loadMultiple();
+    $types = $this->entityManager->getStorage('external_entity_type')
+      ->loadMultiple();
     foreach ($types as $node_type) {
       if (($access = $access_control_handler->createAccess($node_type->id(), $account, [], TRUE)) && $access->isAllowed()) {
         return $access;

@@ -2,21 +2,21 @@
 
 /**
  * @file
- * Contains \Drupal\external_entities\ExternalEntityStorageClientManager.
+ * Contains \Drupal\external_entities\Plugin\ExternalEntityStorageConnectionManager.
  */
 
-namespace Drupal\external_entities;
+namespace Drupal\external_entities\Plugin;
 
 use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 
 /**
- * ExternalEntityStorageClient plugin manager.
+ * ExternalEntityStorageConnectionManager plugin manager.
  */
-class ExternalEntityStorageClientManager extends DefaultPluginManager {
+class ExternalEntityStorageConnectionManager extends DefaultPluginManager {
   /**
-   * Constructs an ExternalEntityStorageClientManager object.
+   * Constructs an ExternalEntityStorageConnectionManager object.
    *
    * @param \Traversable $namespaces
    *   An object that implements \Traversable which contains the root paths
@@ -28,13 +28,13 @@ class ExternalEntityStorageClientManager extends DefaultPluginManager {
    */
   public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler) {
     parent::__construct(
-      'Plugin/ExternalEntityStorageClient',
+      'Plugin/ExternalEntityStorageConnection',
       $namespaces,
       $module_handler,
-      'Drupal\external_entities\ExternalEntityStorageClientInterface',
-      'Drupal\external_entities\Annotation\ExternalEntityStorageClient'
+      'Drupal\external_entities\Plugin\ExternalEntityStorageConnectionInterface',
+      'Drupal\external_entities\Annotation\ExternalEntityStorageConnection'
     );
-    $this->alterInfo('external_entity_storage_client_info');
-    $this->setCacheBackend($cache_backend, 'external_entity_storage_client');
+    $this->alterInfo('external_entity_storage_connection_info');
+    $this->setCacheBackend($cache_backend, 'external_entity_storage_connection');
   }
 }

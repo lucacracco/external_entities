@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\external_entities\ExternalEntityStorageSchema.
+ * Contains \Drupal\external_entities\Storage\ExternalEntityStorageSchema.
  */
 
-namespace Drupal\external_entities;
+namespace Drupal\external_entities\Storage;
 
 use Drupal\Core\Entity\Schema\DynamicallyFieldableEntityStorageSchemaInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;

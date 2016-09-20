@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\external_entities\ExternalEntityTypeListBuilder.
+ * Contains \Drupal\external_entities\ListBuilder\ExternalEntityTypeListBuilder.
  */
 
-namespace Drupal\external_entities;
+namespace Drupal\external_entities\ListBuilder;
 
 use Drupal\Core\Config\Entity\ConfigEntityListBuilder;
 use Drupal\Core\Entity\EntityTypeInterface;
