@@ -13,9 +13,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 abstract class ExternalEntityStorageConnectionBase extends PluginBase implements ContainerFactoryPluginInterface, ExternalEntityStorageConnectionInterface {
 
   /**
-   * The machine name of the entity bundle using this plugin.
+   * The entity bundle using this plugin.
    *
-   * @var string
+   * @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface
    */
   protected $externalEntityType;
 
@@ -80,7 +80,7 @@ abstract class ExternalEntityStorageConnectionBase extends PluginBase implements
    * {@inheritdoc}
    */
   public function setExternalEntity($external_entity_type) {
-    $this->externalEntityType = $external_entity_type;
+    $this->externalEntityType = $this->entityStorage->load($external_entity_type);
     return $this;
   }
 
@@ -91,7 +91,4 @@ abstract class ExternalEntityStorageConnectionBase extends PluginBase implements
     return [];
   }
 
-  protected function getExternalEntityType() {
-    return $this->entityStorage->load($this->externalEntityType);
-  }
 }
