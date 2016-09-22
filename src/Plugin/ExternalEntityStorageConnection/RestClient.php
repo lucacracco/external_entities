@@ -14,11 +14,6 @@ use Drupal\external_entities\Plugin\HttpClientBase;
  *   description = "REST implementation of an external entity storage connection",
  *   settings = {
  *    "endpoint" = "",
- *    "default_limit" = 10,
- *    "page_parameter" = "page",
- *    "page_size_parameter" = "pagesize",
- *    "page_parameter_type" = "pagenum",
- *    "page_size_parameter_type" = "pagesize",
  *    "header_name" = NULL,
  *    "key" = NULL,
  *    "list" = {},

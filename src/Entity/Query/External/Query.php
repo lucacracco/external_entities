@@ -4,6 +4,7 @@ namespace Drupal\external_entities\Entity\Query\External;
 
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Entity\Query\ConditionInterface;
 use Drupal\Core\Entity\Query\QueryBase;
 use Drupal\Core\Entity\Query\QueryException;
 use Drupal\Core\Entity\Query\QueryInterface;
@@ -197,27 +198,6 @@ class Query extends QueryBase implements QueryInterface {
    *   Returns the called object.
    */
   protected function finish() {
-//    $bundle_id = $this->getBundle();
-//    $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())
-//      ->load($bundle_id);
-//    $pager_settings = $bundle->getPagerSettings();
-
-//    $this->initializePager();
-
-//    if (!empty($pager_settings['page_parameter']) && !empty($pager_settings['page_size_parameter'])) {
-//      if ($this->range) {
-//        $start = $this->range['start'];
-//        $end = $this->range['length'];
-//        if ($pager_settings['page_parameter_type'] === 'pagenum') {
-//          $start = $this->range['start'] / $this->range['length'];
-//        }
-//        if ($pager_settings['page_size_parameter_type'] === 'enditem') {
-//          $end = $this->range['start'] + $this->range['length'];
-//        }
-//        $this->setParameter($pager_settings['page_parameter'], $start);
-//        $this->setParameter($pager_settings['page_size_parameter'], $end);
-//      }
-//    }
     return $this;
   }
 

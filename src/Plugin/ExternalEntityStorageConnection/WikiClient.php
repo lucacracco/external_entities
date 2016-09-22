@@ -14,11 +14,7 @@ use Drupal\external_entities\Plugin\HttpClientBase;
  *   name = "Wiki",
  *   description = "Wiki implementation of an external entity storage client",
  *   settings = {
- *    "default_limit" = 10,
- *    "page_parameter" = "page",
- *    "page_size_parameter" = "pagesize",
- *    "page_parameter_type" = "pagenum",
- *    "page_size_parameter_type" = "pagesize",
+ *    "endpoint" = "",
  *    "header_name" = NULL,
  *    "key" = NULL,
  *    "list" = {},

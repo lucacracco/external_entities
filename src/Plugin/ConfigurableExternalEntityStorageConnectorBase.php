@@ -41,9 +41,7 @@ abstract class ConfigurableExternalEntityStorageConnectorBase extends ExternalEn
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
-    return [
-      'endpoint' => 'http://localhost',
-    ];
+    return [];
   }
 
 
