@@ -5,7 +5,7 @@ namespace Drupal\external_entities\Form;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Entity\EntityManagerInterface;
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Utility\Html;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Form\FormState;
 use Drupal\Core\Form\FormStateInterface;
@@ -79,7 +79,7 @@ class ExternalEntityTypeForm extends EntityForm {
     $form['#tree'] = TRUE;
 
     if ($this->operation == 'add') {
-      $form['#title'] = SafeMarkup::checkPlain($this->t('Add external entity type'));
+      $form['#title'] = Html::escape($this->t('Add external entity type'));
       $base_fields = $this->entityManager->getBaseFieldDefinitions('external_entity');
       $fields = $this->entityManager->getFieldDefinitions('external_entity', $type->id());
       // Create an external entity with a fake bundle using the type's UUID so
@@ -369,12 +369,12 @@ class ExternalEntityTypeForm extends EntityForm {
     }
     elseif ($status == SAVED_NEW) {
       drupal_set_message(t('The external entity type %name has been added.', $t_args));
-      $context = array_merge($t_args, ['link' => $type->link($this->t('View'), 'collection')]);
+      $context = array_merge($t_args, ['link' => $type->toLink($this->t('View'), 'collection')]);
       $this->logger('external_entities')
         ->notice('Added external entity type %name.', $context);
     }
     $this->entityManager->clearCachedFieldDefinitions();
-    $form_state->setRedirectUrl($type->urlInfo('collection'));
+    $form_state->setRedirectUrl($type->toUrl('collection'));
   }
 
 }

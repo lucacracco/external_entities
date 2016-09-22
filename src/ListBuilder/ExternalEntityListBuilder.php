@@ -7,7 +7,7 @@
 
 namespace Drupal\external_entities\ListBuilder;
 
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Utility\Html;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityListBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
@@ -115,7 +115,7 @@ class ExternalEntityListBuilder extends EntityListBuilder {
    * {@inheritdoc}
    */
   public function buildRow(EntityInterface $entity) {
-    $uri = $entity->urlInfo();
+    $uri = $entity->toUrl();
     $options = $uri->getOptions();
     $uri->setOptions($options);
     $row['title']['data'] = [
@@ -123,7 +123,7 @@ class ExternalEntityListBuilder extends EntityListBuilder {
       '#title' => $entity->label(),
       '#url' => $uri,
     ];
-    $row['type'] = SafeMarkup::checkPlain($this->entityManager->getStorage($this->entityType->getBundleEntityType())
+    $row['type'] = Html::escape($this->entityManager->getStorage($this->entityType->getBundleEntityType())
       ->load($entity->bundle())
       ->label());
     return $row + parent::buildRow($entity);
