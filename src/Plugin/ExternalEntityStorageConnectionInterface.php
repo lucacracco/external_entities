@@ -80,4 +80,13 @@ interface ExternalEntityStorageConnectionInterface extends PluginInspectionInter
    */
   public function getHttpHeaders();
 
+  /**
+   * Sets the External Entity Type ID for the connection using this plugin.
+   *
+   * @param string $external_entity_type
+   *   The entity bundle ID.
+   *
+   * @return static
+   */
+  public function setExternalEntity($external_entity_type);
 }

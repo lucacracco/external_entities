@@ -190,7 +190,7 @@ class ExternalEntityType extends ConfigEntityBundleBase implements ExternalEntit
    */
   protected function getPluginCollection() {
     if (!$this->connectionCollection) {
-      $this->connectionCollection = new ExternalEntityStorageConnectionCollection($this->externalEntityStorageConnectionManager(), $this->connection, $this->configuration);
+      $this->connectionCollection = new ExternalEntityStorageConnectionCollection($this->externalEntityStorageConnectionManager(), $this->connection, $this->configuration, $this->id());
     }
     return $this->connectionCollection;
   }

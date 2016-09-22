@@ -101,13 +101,13 @@ class ExternalEntityListBuilder extends EntityListBuilder {
    */
   public function buildHeader() {
     // Enable language column and filter if multiple languages are added.
-    $header = array(
+    $header = [
       'title' => $this->t('Title'),
-      'type' => array(
+      'type' => [
         'data' => $this->t('External entity type'),
-        'class' => array(RESPONSIVE_PRIORITY_MEDIUM),
-      ),
-    );
+        'class' => [RESPONSIVE_PRIORITY_MEDIUM],
+      ],
+    ];
     return $header + parent::buildHeader();
   }
 
@@ -118,12 +118,14 @@ class ExternalEntityListBuilder extends EntityListBuilder {
     $uri = $entity->urlInfo();
     $options = $uri->getOptions();
     $uri->setOptions($options);
-    $row['title']['data'] = array(
+    $row['title']['data'] = [
       '#type' => 'link',
       '#title' => $entity->label(),
       '#url' => $uri,
-    );
-    $row['type'] = SafeMarkup::checkPlain($this->entityManager->getStorage($this->entityType->getBundleEntityType())->load($entity->bundle())->label());
+    ];
+    $row['type'] = SafeMarkup::checkPlain($this->entityManager->getStorage($this->entityType->getBundleEntityType())
+      ->load($entity->bundle())
+      ->label());
     return $row + parent::buildRow($entity);
   }
 

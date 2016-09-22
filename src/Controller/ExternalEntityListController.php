@@ -26,6 +26,9 @@ class ExternalEntityListController extends ControllerBase {
    *   A render array as expected by drupal_render().
    */
   public function listing($entity_type, $bundle) {
-    return $this->entityManager()->getListBuilder($entity_type)->setBundle($bundle)->render();
+    return $this->entityManager()
+      ->getListBuilder($entity_type)
+      ->setBundle($bundle)
+      ->render();
   }
 }

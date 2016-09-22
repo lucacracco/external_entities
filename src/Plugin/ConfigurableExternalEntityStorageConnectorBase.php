@@ -3,6 +3,7 @@
 namespace Drupal\external_entities\Plugin;
 
 use Drupal\Component\Utility\NestedArray;
+use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -14,20 +15,8 @@ abstract class ConfigurableExternalEntityStorageConnectorBase extends ExternalEn
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $container->get('external_entity.storage_connection.response_decoder_factory')
-    );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, \Drupal\external_entities\Decoder\ResponseDecoderFactoryInterface $decoder) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition, $decoder);
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityManagerInterface $entity_manager, \Drupal\external_entities\Decoder\ResponseDecoderFactoryInterface $decoder) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $entity_manager, $decoder);
     $this->configuration = NestedArray::mergeDeep($this->defaultConfiguration(), $this->configuration);
   }
 
@@ -56,5 +45,6 @@ abstract class ConfigurableExternalEntityStorageConnectorBase extends ExternalEn
       'endpoint' => 'http://localhost',
     ];
   }
+
 
 }

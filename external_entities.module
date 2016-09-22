@@ -32,15 +32,15 @@ function external_entities_theme() {
  *   - content: An array of external entity types.
  */
 function template_preprocess_external_entities_add_list(&$variables) {
-  $variables['types'] = array();
+  $variables['types'] = [];
   if (!empty($variables['external_entity_types'])) {
     /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $type */
     foreach ($variables['external_entity_types'] as $type) {
-      $variables['types'][$type->id()] = array(
+      $variables['types'][$type->id()] = [
         'type' => $type->id(),
-        'add_link' => \Drupal::l($type->label(), new Url('external_entity.add', array('external_entity_type' => $type->id()))),
+        'add_link' => \Drupal::l($type->label(), new Url('external_entity.add', ['external_entity_type' => $type->id()])),
         'description' => Xss::filterAdmin($type->getDescription()),
-      );
+      ];
     }
   }
 }
@@ -63,7 +63,7 @@ function template_preprocess_external_entities_add_list(&$variables) {
 function template_preprocess_external_entity(&$variables) {
   $variables['external_entity'] = $variables['elements']['#external_entity'];
   // Helpful $content variable for templates.
-  $variables['content'] = array();
+  $variables['content'] = [];
   foreach (Element::children($variables['elements']) as $key) {
     $variables['content'][$key] = $variables['elements'][$key];
   }

@@ -3,6 +3,7 @@
 namespace Drupal\external_entities\Plugin;
 
 use Drupal\Component\Plugin\PluginBase;
+use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -10,6 +11,20 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Base class for external entity storage connections.
  */
 abstract class ExternalEntityStorageConnectionBase extends PluginBase implements ContainerFactoryPluginInterface, ExternalEntityStorageConnectionInterface {
+
+  /**
+   * The machine name of the entity bundle using this plugin.
+   *
+   * @var string
+   */
+  protected $externalEntityType;
+
+  /**
+   * The entity storage handler.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected $entityStorage;
 
   /**
    * The decoder to decode the data.
@@ -26,6 +41,7 @@ abstract class ExternalEntityStorageConnectionBase extends PluginBase implements
       $configuration,
       $plugin_id,
       $plugin_definition,
+      $container->get('entity.manager'),
       $container->get('external_entity.storage_client.response_decoder_factory')
     );
   }
@@ -33,8 +49,9 @@ abstract class ExternalEntityStorageConnectionBase extends PluginBase implements
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, \Drupal\external_entities\Decoder\ResponseDecoderFactoryInterface $decoder) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityManagerInterface $entity_manager, \Drupal\external_entities\Decoder\ResponseDecoderFactoryInterface $decoder) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
+    $this->entityStorage = $entity_manager->getStorage('external_entity_type');
     $this->decoder = $decoder;
   }
 
@@ -62,8 +79,19 @@ abstract class ExternalEntityStorageConnectionBase extends PluginBase implements
   /**
    * {@inheritdoc}
    */
+  public function setExternalEntity($external_entity_type) {
+    $this->externalEntityType = $external_entity_type;
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function calculateDependencies() {
     return [];
   }
 
+  protected function getExternalEntityType() {
+    return $this->entityStorage->load($this->externalEntityType);
+  }
 }

@@ -2,6 +2,7 @@
 
 namespace Drupal\external_entities\Plugin;
 
+use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -29,6 +30,7 @@ abstract class HttpClientBase extends ConfigurableExternalEntityStorageConnector
       $configuration,
       $plugin_id,
       $plugin_definition,
+      $container->get('entity.manager'),
       $container->get('external_entity.storage_connection.response_decoder_factory'),
       $container->get('http_client')
     );
@@ -37,8 +39,8 @@ abstract class HttpClientBase extends ConfigurableExternalEntityStorageConnector
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, \Drupal\external_entities\Decoder\ResponseDecoderFactoryInterface $decoder, \GuzzleHttp\ClientInterface $http_client) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition, $decoder);
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityManagerInterface $entity_manager, \Drupal\external_entities\Decoder\ResponseDecoderFactoryInterface $decoder, \GuzzleHttp\ClientInterface $http_client) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $entity_manager, $decoder);
     $this->httpClient = $http_client;
   }
 
