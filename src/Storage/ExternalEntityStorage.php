@@ -89,27 +89,7 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
       /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $bundle */
       $bundle = $this->entityManager->getStorage('external_entity_type')
         ->load($bundle_id);
-
       $this->storageConnections[$bundle_id] = $bundle->getConnection();
-
-//      $connection_plugin = $this->storageConnectionManager->getDefinition($bundle->getConnection());
-      // TODO: load plugin Connection.
-//      $config = [
-//        'http_client' => $this->httpClient,
-//        'decoder' => $this->decoder,
-//        'endpoint' => $client_plugin->getEndpoint(),
-//        'format' => $client_plugin->getFormat(),
-//        'http_headers' => [],
-//        'parameters' => $client_plugin->getParameters(),
-//      ];
-//      $api_key_settings = $client_plugin->getApiKeySettings();
-//      if (!empty($api_key_settings['header_name']) && !empty($api_key_settings['key'])) {
-//        $config['http_headers'][$api_key_settings['header_name']] = $api_key_settings['key'];
-//      }
-//      $this->storageClients[$bundle_id] = $this->storageClientManager->createInstance(
-//        $bundle->getClient(),
-//        $config
-//      );
     }
     return $this->storageConnections[$bundle_id];
   }
@@ -154,6 +134,9 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
     foreach ($ids as $id) {
       if (strpos($id, '-')) {
         list($bundle, $external_id) = explode('-', $id);
+
+        // TODO: add layer cache. @see SqlContentEntityStorage:doLoadMultiple().
+
         $entities[$id] = $this->create([$this->entityType->getKey('bundle') => $bundle])
           ->mapObject($this->getStorageConnection($bundle)->load($external_id))
           ->enforceIsNew(FALSE);

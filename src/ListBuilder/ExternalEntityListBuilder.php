@@ -75,12 +75,6 @@ class ExternalEntityListBuilder extends EntityListBuilder {
       ->condition($keys['bundle'], $this->bundle)
       ->sort($keys['id']);
 
-//    $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())->load($this->bundle);
-//    $pager_settings = $bundle->getPagerSettings();
-//    if (!empty($pager_settings['page_parameter']) && !empty($pager_settings['page_size_parameter'])) {
-//      $query->pager($pager_settings['default_limit']);
-//    }
-
     return $query->execute();
   }
 
