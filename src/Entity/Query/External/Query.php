@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\external_entities\Entity\Query\External\Query.
- */
-
 namespace Drupal\external_entities\Entity\Query\External;
 
 use Drupal\Core\Entity\EntityManagerInterface;
@@ -14,7 +9,6 @@ use Drupal\Core\Entity\Query\QueryException;
 use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\Component\Plugin\PluginManagerInterface;
 use Drupal\external_entities\Decoder\ResponseDecoderFactoryInterface;
-use GuzzleHttp\ClientInterface;
 
 /**
  * The SQL storage entity query class.
@@ -70,13 +64,6 @@ class Query extends QueryBase implements QueryInterface {
   protected $decoder;
 
   /**
-   * The HTTP client to fetch the data with.
-   *
-   * @var \GuzzleHttp\ClientInterface
-   */
-  protected $httpClient;
-
-  /**
    * Storage connection instance.
    *
    * @var \Drupal\external_entities\Plugin\ExternalEntityStorageConnectionInterface
@@ -88,11 +75,10 @@ class Query extends QueryBase implements QueryInterface {
    *
    * {@inheritdoc}
    */
-  public function __construct(EntityTypeInterface $entity_type, $conjunction, array $namespaces, PluginManagerInterface $storage_connection_manager, ResponseDecoderFactoryInterface $decoder, ClientInterface $http_client, EntityManagerInterface $entity_manager) {
+  public function __construct(EntityTypeInterface $entity_type, $conjunction, array $namespaces, PluginManagerInterface $storage_connection_manager, ResponseDecoderFactoryInterface $decoder, EntityManagerInterface $entity_manager) {
     parent::__construct($entity_type, $conjunction, $namespaces);
     $this->storageConnectorManager = $storage_connection_manager;
     $this->decoder = $decoder;
-    $this->httpClient = $http_client;
     $this->entityManager = $entity_manager;
   }
 

@@ -1,7 +1,7 @@
 services:
   entity.query.external:
     class: Drupal\external_entities\Entity\Query\External\QueryFactory
-    arguments: ['@plugin.manager.external_entity_storage_connection', '@external_entity.storage_connection.response_decoder_factory', '@http_client', '@entity.manager']
+    arguments: ['@plugin.manager.external_entity_storage_connection', '@external_entity.storage_connection.response_decoder_factory', '@entity.manager']
     tags:
       - { name: backend_overridable }
   external_entity.storage_connection.response_decoder_factory:

@@ -2,13 +2,14 @@
 
 namespace Drupal\external_entities\Form;
 
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Form\FormState;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
-use Drupal\external_entities\Entity\ExternalEntityTypeInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -36,13 +37,6 @@ class ExternalEntityTypeForm extends EntityForm {
    * @var \Drupal\external_entities\Decoder\ResponseDecoderFactoryInterface
    */
   protected $decoderFactory;
-
-  /**
-   * The connection plugin being configured.
-   *
-   * @var \Drupal\external_entities\Plugin\ExternalEntityStorageConnectionInterface | \Drupal\external_entities\Plugin\ConfigurableExternalEntityStorageConnectionInterface
-   */
-  protected $connection;
 
   /**
    * Constructs the NodeTypeForm object.
@@ -74,11 +68,15 @@ class ExternalEntityTypeForm extends EntityForm {
    * {@inheritdoc}
    */
   public function form(array $form, FormStateInterface $form_state) {
-    /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $type */
-    $type = $this->entity;
-    $this->connection = $type->getConnection();
 
+    /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $type */
+    $type = &$this->entity;
+    $type->getPluginCollections();
+
+    // Disable caching on this form.
+    $form_state->setCached(FALSE);
     $form = parent::form($form, $form_state);
+    $form['#tree'] = TRUE;
 
     if ($this->operation == 'add') {
       $form['#title'] = SafeMarkup::checkPlain($this->t('Add external entity type'));
@@ -164,9 +162,9 @@ class ExternalEntityTypeForm extends EntityForm {
         '#required' => isset($base_fields[$field->getName()]),
       ];
     }
-    $form['storage_settings'] = [
+    $form['connection_settings'] = [
       '#type' => 'details',
-      '#title' => $this->t('Storage settings'),
+      '#title' => $this->t('Connection settings'),
       '#group' => 'additional_settings',
       '#open' => FALSE,
     ];
@@ -176,20 +174,44 @@ class ExternalEntityTypeForm extends EntityForm {
     foreach ($plugins as $connection) {
       $connection_options[$connection['id']] = $connection['name'];
     }
-    $form['storage_settings']['connection'] = [
+    $form['connection_settings']['connection'] = [
       '#type' => 'select',
-      '#title' => $this->t('Storage connection'),
+      '#title' => $this->t('Connection'),
       '#options' => $connection_options,
       '#required' => TRUE,
       '#default_value' => $type->getConnectionId(),
+      '#ajax' => [
+        'callback' => [$this, 'updateConnection'],
+        'wrapper' => 'connection-configuration',
+        'progress' => [
+          'type' => 'throbber',
+          'message' => "searching",
+        ],
+      ],
     ];
 
-    if ($this->connection instanceof PluginFormInterface) {
-      $form += $this->connection->buildConfigurationForm($form, $form_state);
+    if ($type->getConnection() instanceof PluginFormInterface) {
+      $form['connection_settings']['connection_configuration'] = [
+        '#type' => 'details',
+        '#title' => $this->t('Connection settings'),
+        '#open' => TRUE,
+        '#attributes' => ['id' => 'connection-configuration'],
+      ];
+      $form_connection_configuration = $type->getConnection()
+        ->buildConfigurationForm([], $form_state);
+      $form['connection_settings']['connection_configuration'] = NestedArray::mergeDeep($form['connection_settings']['connection_configuration'], $form_connection_configuration);
     }
 
+    // Format Settings.
+    $form['format_settings'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Format settings'),
+      '#group' => 'additional_settings',
+      '#open' => FALSE,
+    ];
+
     $formats = $this->decoderFactory->supportedFormats();
-    $form['storage_settings']['format'] = [
+    $form['format_settings']['format'] = [
       '#type' => 'select',
       '#title' => $this->t('Format'),
       '#options' => array_combine($formats, $formats),
@@ -197,9 +219,48 @@ class ExternalEntityTypeForm extends EntityForm {
       '#default_value' => $type->getFormat(),
     ];
 
-    $form['#tree'] = TRUE;
-
     return $form;
+  }
+
+  /**
+   * Implements callback for Ajax event on connection selection.
+   *
+   * @param array $form
+   *   From render array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   Current state of form.
+   *
+   * @return array
+   *   Connection settings section of the form.
+   */
+  public function updateConnection(array &$form, FormStateInterface $form_state) {
+
+    // Rebuild form to have updated options in cache.
+    $form_state->setRebuild();
+
+    /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $type */
+    $type = &$this->entity;
+
+    // Get connection select.
+    $connection = $form_state->getValue(['connection_settings', 'connection']);
+
+    // Set Connection for ExternalEntityType.
+    $type->setConnection($connection);
+
+    // Build Form configuration.
+    if ($type->getConnection() instanceof PluginFormInterface) {
+      $form['connection_settings']['connection_configuration'] = [
+        '#type' => 'details',
+        '#title' => $this->t('Connection settings'),
+        '#open' => TRUE,
+        '#attributes' => ['id' => 'connection-configuration'],
+      ];
+      $form_connection_configuration = $type->getConnection()
+        ->buildConfigurationForm([], $form_state);
+      $form['connection_settings']['connection_configuration'] = NestedArray::mergeDeep($form['connection_settings']['connection_configuration'], $form_connection_configuration);
+    }
+
+    return $form['connection_settings']['connection_configuration'];
   }
 
   /**
@@ -218,25 +279,47 @@ class ExternalEntityTypeForm extends EntityForm {
   public function validateForm(array &$form, FormStateInterface $form_state) {
     parent::validateForm($form, $form_state);
 
+    /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $type */
+    $type = &$this->entity;
+
     $id = trim($form_state->getValue('type'));
     // '0' is invalid, since elsewhere we check it using empty().
     if ($id == '0') {
       $form_state->setErrorByName('type', $this->t("Invalid machine-readable name. Enter a name other than %invalid.", ['%invalid' => $id]));
     }
+
+    // Set field_mappings.
     $form_state->setValue('field_mappings', array_filter($form_state->getValue('field_mappings')));
+
+    // Set format.
     $form_state->setValue('format', $form_state->getValue([
-      'storage_settings',
+      'format_settings',
       'format'
     ]));
+
+    // Set connection.
     $form_state->setValue('connection', $form_state->getValue([
-      'storage_settings',
+      'connection_settings',
       'connection'
     ]));
-    $form_state->unsetValue('storage_settings');
-    $form_state->unsetValue('field_mappings');
 
-    if ($this->connection instanceof PluginFormInterface) {
-      $this->connection->validateConfigurationForm($form, $form_state);
+    // Validation for plugin connection.
+    if ($type->getConnection() instanceof PluginFormInterface) {
+
+      // The External Entity form puts all connection plugin form elements in the
+      // settings form element, so just pass that to the connection for validation.
+      $settings = $form_state->getValue([
+        'connection_settings',
+        'connection_configuration'
+      ]);
+      $settings = (new FormState())->setValues($settings);
+
+      $type->getConnection()->validateConfigurationForm($form, $settings);
+      // Update the original form values.
+      $form_state->setValue([
+        'connection_settings',
+        'connection_configuration'
+      ], $settings->getValues());
     }
   }
 
@@ -246,12 +329,24 @@ class ExternalEntityTypeForm extends EntityForm {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     parent::submitForm($form, $form_state);
 
-    /** @var ExternalEntityTypeInterface $type */
-    $type = $this->entity;
+    /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $type */
+    $type = &$this->entity;
 
-    if ($this->connection instanceof PluginFormInterface) {
-      $this->connection->submitConfigurationForm($form, $form_state);
-      $type->setConfiguration($this->connection->getConfiguration());
+    if ($type->getConnection() instanceof PluginFormInterface) {
+
+      // The External Entity form puts all connection plugin form elements in the
+      // settings form element, so just pass that to the connection for validation.
+      $settings = (new FormState())->setValues($form_state->getValue([
+        'connection_settings',
+        'connection_configuration'
+      ]));
+
+      // Submit configuration form plugin.
+      $type->getConnection()->submitConfigurationForm($form, $settings);
+
+      // Retrieve configuration plugin and save into entity.
+      $type->setConfiguration($type->getConnection()->getConfiguration());
+
     }
     return $this->entity;
   }
@@ -260,7 +355,9 @@ class ExternalEntityTypeForm extends EntityForm {
    * {@inheritdoc}
    */
   public function save(array $form, FormStateInterface $form_state) {
-    $type = $this->entity;
+
+    /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $type */
+    $type = &$this->entity;
     $type->set('type', trim($type->id()));
     $type->set('label', trim($type->label()));
     $status = $type->save();

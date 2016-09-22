@@ -62,7 +62,7 @@ interface ExternalEntityTypeInterface extends EntityWithPluginCollectionInterfac
   /**
    * Returns the external entity storage connection plugin.
    *
-   * @return \Drupal\external_entities\Plugin\ExternalEntityStorageConnectionInterface
+   * @return \Drupal\external_entities\Plugin\ExternalEntityStorageConnectionInterface | \Drupal\external_entities\Plugin\ConfigurableExternalEntityStorageConnectionInterface
    *   The plugin storage connection used by this external entity type.
    */
   public function getConnection();

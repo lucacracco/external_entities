@@ -24,9 +24,3 @@ external_entities.type.*:
         label: 'Field mapping'
         sequence:
           type: string
-    connection:
-      type: string
-      label: 'Storage connection'
-    format:
-      type: string
-      label: 'Format'

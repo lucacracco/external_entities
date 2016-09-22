@@ -2,14 +2,14 @@
 
 namespace Drupal\external_entities\Plugin\ExternalEntityStorageConnection;
 
-use Drupal\Core\Form\FormStateInterface;
-use Drupal\external_entities\Plugin\ClientBase;
+use Drupal\external_entities\Plugin\HttpClientBase;
 
 /**
  * REST implementation of an external entity storage connection.
  *
  * @ExternalEntityStorageConnection(
  *   id = "rest_client",
+ *   provider = "external_entities",
  *   name = "REST",
  *   description = "REST implementation of an external entity storage connection",
  *   settings = {
@@ -26,28 +26,7 @@ use Drupal\external_entities\Plugin\ClientBase;
  *   },
  * )
  */
-class RestClient extends ClientBase {
-
-  /**
-   * {@inheritdoc
-   */
-  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    return parent::buildConfigurationForm($form, $form_state);
-  }
-
-  /**
-   * {@inheritdoc
-   */
-  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
-    parent::validateConfigurationForm($form, $form_state);
-  }
-
-  /**
-   * {@inheritdoc
-   */
-  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    parent::submitConfigurationForm($form, $form_state);
-  }
+class RestClient extends HttpClientBase {
 
   /**
    * {@inheritdoc}

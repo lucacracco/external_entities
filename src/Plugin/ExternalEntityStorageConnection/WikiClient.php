@@ -2,7 +2,7 @@
 
 namespace Drupal\external_entities\Plugin\ExternalEntityStorageConnection;
 
-use Drupal\external_entities\Plugin\ClientBase;
+use Drupal\external_entities\Plugin\HttpClientBase;
 
 
 /**
@@ -10,6 +10,7 @@ use Drupal\external_entities\Plugin\ClientBase;
  *
  * @ExternalEntityStorageConnection(
  *   id = "wiki_client",
+ *   provider = "external_entities",
  *   name = "Wiki",
  *   description = "Wiki implementation of an external entity storage client",
  *   settings = {
@@ -25,7 +26,7 @@ use Drupal\external_entities\Plugin\ClientBase;
  *   },
  * )
  */
-class WikiClient extends ClientBase {
+class WikiClient extends HttpClientBase {
 
   /**
    * {@inheritdoc}
@@ -98,7 +99,8 @@ class WikiClient extends ClientBase {
     $response = $this->httpClient->get(
       $this->configuration['endpoint'],
       [
-        'query' => $parameters + $this->configuration['parameters']['list'],
+//        'query' => $parameters + $this->configuration['parameters']['list'],
+        'query' => $parameters,
         'headers' => $this->getHttpHeaders()
       ]
     );

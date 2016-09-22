@@ -85,11 +85,14 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
    */
   protected function getStorageConnection($bundle_id) {
     if (!isset($this->storageConnections[$bundle_id])) {
+
       /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $bundle */
       $bundle = $this->entityManager->getStorage('external_entity_type')
         ->load($bundle_id);
-      $connection_plugin = $this->storageConnectionManager->getDefinition($bundle->getConnection());
 
+      $this->storageConnections[$bundle_id] = $bundle->getConnection();
+
+//      $connection_plugin = $this->storageConnectionManager->getDefinition($bundle->getConnection());
       // TODO: load plugin Connection.
 //      $config = [
 //        'http_client' => $this->httpClient,

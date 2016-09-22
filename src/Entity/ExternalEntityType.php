@@ -199,7 +199,7 @@ class ExternalEntityType extends ConfigEntityBundleBase implements ExternalEntit
    * {@inheritdoc}
    */
   public function getPluginCollections() {
-    return ['connections' => $this->getPluginCollection()];
+    return ['configuration' => $this->getPluginCollection()];
   }
 
   /**

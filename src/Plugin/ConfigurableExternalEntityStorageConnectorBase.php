@@ -12,13 +12,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 abstract class ConfigurableExternalEntityStorageConnectorBase extends ExternalEntityStorageConnectionBase implements ContainerFactoryPluginInterface, ConfigurableExternalEntityStorageConnectionInterface {
 
   /**
-   * The HTTP client to fetch the data with.
-   *
-   * @var \GuzzleHttp\ClientInterface
-   */
-  protected $httpClient;
-
-  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
@@ -26,7 +19,6 @@ abstract class ConfigurableExternalEntityStorageConnectorBase extends ExternalEn
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('http_client'),
       $container->get('external_entity.storage_connection.response_decoder_factory')
     );
   }
@@ -34,9 +26,8 @@ abstract class ConfigurableExternalEntityStorageConnectorBase extends ExternalEn
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, \GuzzleHttp\ClientInterface $http_client, \Drupal\external_entities\Decoder\ResponseDecoderFactoryInterface $decoder) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, \Drupal\external_entities\Decoder\ResponseDecoderFactoryInterface $decoder) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $decoder);
-    $this->httpClient = $http_client;
     $this->configuration = NestedArray::mergeDeep($this->defaultConfiguration(), $this->configuration);
   }
 
