@@ -17,17 +17,19 @@
  */
 #}
 {% if types is not empty %}
-  <dl>
-    {% for type in types %}
-      <dt>{{ type.add_link }}</dt>
-      <dd>{{ type.description }}</dd>
-    {% endfor %}
-  </dl>
+    <dl>
+        {% for type in types %}
+            <dt>{{ type.add_link }}</dt>
+            <dd>{{ type.description }}</dd>
+        {% endfor %}
+    </dl>
 {% else %}
-  <p>
-    {% set create_type = path('external_entity.type_add') %}
-    {% trans %}
-      You have not created any editable external entity types yet. Go to the <a href="{{ create_type }}">external entity type creation page</a> to add a new external entity type.
-    {% endtrans %}
-  </p>
+    <p>
+        {% set create_type = path('external_entity.type_add') %}
+        {% trans %}
+        You have not created any editable external entity types yet. Go to the
+        <a href="{{ create_type }}">external entity type creation page</a> to
+        add a new external entity type.
+        {% endtrans %}
+    </p>
 {% endif %}

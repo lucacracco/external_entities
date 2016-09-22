@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Definition of Drupal\external_entities\ExternalEntityForm.
+ * Definition of Drupal\external_entities\Form\ExternalEntityForm.
  */
 
-namespace Drupal\external_entities;
+namespace Drupal\external_entities\Form;
 
 use Drupal\Core\Entity\ContentEntityForm;
 use Drupal\Core\Form\FormStateInterface;
@@ -20,7 +20,11 @@ class ExternalEntityForm extends ContentEntityForm {
    */
   public function form(array $form, FormStateInterface $form_state) {
     if ($this->operation == 'edit') {
-      $form['#title'] = $this->t('<em>Edit @type</em> @title', array('@type' => $this->entityManager->getStorage($this->entity->getEntityType()->getBundleEntityType())->load($this->entity->bundle())->label(), '@title' => $this->entity->label()));
+      $form['#title'] = $this->t('<em>Edit @type</em> @title', [
+        '@type' => $this->entityManager->getStorage($this->entity->getEntityType()
+          ->getBundleEntityType())->load($this->entity->bundle())->label(),
+        '@title' => $this->entity->label()
+      ]);
     }
     return parent::form($form, $form_state);
   }
@@ -34,7 +38,7 @@ class ExternalEntityForm extends ContentEntityForm {
     if ($external_entity->access('view')) {
       $form_state->setRedirect(
         'entity.external_entity.canonical',
-        array('external_entity' => $external_entity->id())
+        ['external_entity' => $external_entity->id()]
       );
     }
     else {

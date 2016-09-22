@@ -5,11 +5,10 @@
  * Contains \Drupal\external_entities\ExternalEntityPermissions.
  */
 
-namespace Drupal\external_entities;
+namespace Drupal\external_entities\Entity;
 
 use Drupal\Core\Routing\UrlGeneratorTrait;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\external_entities\Entity\ExternalEntityType;
 
 /**
  * Defines a class containing permission callbacks.
@@ -24,10 +23,10 @@ class ExternalEntityPermissions {
    *
    * @return array
    *   The external entity type permissions.
-   *   @see \Drupal\user\PermissionHandlerInterface::getPermissions()
+   * @see \Drupal\user\PermissionHandlerInterface::getPermissions()
    */
   public function ExternalEntityTypePermissions() {
-    $perms = array();
+    $perms = [];
     // Generate node permissions for all node types.
     foreach (ExternalEntityType::loadMultiple() as $type) {
       $perms += $this->buildPermissions($type);
@@ -47,19 +46,20 @@ class ExternalEntityPermissions {
    */
   protected function buildPermissions(ExternalEntityType $type) {
     $type_id = $type->id();
-    $type_params = array('%type_name' => $type->label());
+    $type_params = ['%type_name' => $type->label()];
 
-    return array(
-      "create $type_id external entity" => array(
+    return [
+      "create $type_id external entity" => [
         'title' => $this->t('%type_name: Create new external entity', $type_params),
-      ),
-      "edit $type_id external entity" => array(
+      ],
+      "edit $type_id external entity" => [
         'title' => $this->t('%type_name: Edit any external entity', $type_params),
-      ),
-      "delete $type_id external entity" => array(
+      ],
+      "delete $type_id external entity" => [
         'title' => $this->t('%type_name: Delete any external entity', $type_params),
-      ),
-    );
+      ],
+      // TODO: view $type_id external entity
+    ];
   }
 
 }

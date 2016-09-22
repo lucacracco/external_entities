@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\external_entities\Entity\Query\External\Query.
- */
-
 namespace Drupal\external_entities\Entity\Query\External;
 
 use Drupal\Core\Entity\EntityManagerInterface;
@@ -13,8 +8,7 @@ use Drupal\Core\Entity\Query\QueryBase;
 use Drupal\Core\Entity\Query\QueryException;
 use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\Component\Plugin\PluginManagerInterface;
-use Drupal\external_entities\ResponseDecoderFactoryInterface;
-use GuzzleHttp\ClientInterface;
+use Drupal\external_entities\Decoder\ResponseDecoderFactoryInterface;
 
 /**
  * The SQL storage entity query class.
@@ -22,11 +16,11 @@ use GuzzleHttp\ClientInterface;
 class Query extends QueryBase implements QueryInterface {
 
   /**
-   * The parameters to send to the external entity storage client.
+   * The parameters to send to the external entity storage connection.
    *
    * @var array
    */
-  protected $parameters = array();
+  protected $parameters = [];
 
   /**
    * An array of fields keyed by the field alias.
@@ -38,7 +32,7 @@ class Query extends QueryBase implements QueryInterface {
    *
    * @var array
    */
-  protected $fields = array();
+  protected $fields = [];
 
   /**
    * An array of strings added as to the group by, keyed by the string to avoid
@@ -46,7 +40,7 @@ class Query extends QueryBase implements QueryInterface {
    *
    * @var array
    */
-  protected $groupBy = array();
+  protected $groupBy = [];
 
   /**
    * Stores the entity manager used by the query.
@@ -56,48 +50,35 @@ class Query extends QueryBase implements QueryInterface {
   protected $entityManager;
 
   /**
-   * The external storage client manager.
+   * The external storage connection manager.
    *
    * @var \Drupal\Component\Plugin\PluginManagerInterface
    */
-  protected $storageClientManager;
+  protected $storageConnectorManager;
 
   /**
    * The decoder.
    *
-   * @var \Drupal\external_entities\ResponseDecoderFactoryInterface
+   * @var \Drupal\external_entities\Decoder\ResponseDecoderFactoryInterface
    */
   protected $decoder;
 
   /**
-   * The HTTP client to fetch the data with.
+   * Storage connection instance.
    *
-   * @var \GuzzleHttp\ClientInterface
+   * @var \Drupal\external_entities\Plugin\ExternalEntityStorageConnectionInterface
    */
-  protected $httpClient;
-
-  /**
-   * Storage client instance.
-   *
-   * @var \Drupal\external_entities\ExternalEntityStorageClientInterface
-   */
-  protected $storageClient;
+  protected $storageConnection;
 
   /**
    * Constructs a query object.
    *
-   * @param \Drupal\Core\Entity\EntityTypeInterface $entity_type
-   *   The entity type definition.
-   * @param string $conjunction
-   *   - AND: all of the conditions on the query need to match.
-   * @param array $namespaces
-   *   List of potential namespaces of the classes belonging to this query.
+   * {@inheritdoc}
    */
-  public function __construct(EntityTypeInterface $entity_type, $conjunction, array $namespaces, PluginManagerInterface $storage_client_manager, ResponseDecoderFactoryInterface $decoder, ClientInterface $http_client, EntityManagerInterface $entity_manager) {
+  public function __construct(EntityTypeInterface $entity_type, $conjunction, array $namespaces, PluginManagerInterface $storage_connection_manager, ResponseDecoderFactoryInterface $decoder, EntityManagerInterface $entity_manager) {
     parent::__construct($entity_type, $conjunction, $namespaces);
-    $this->storageClientManager = $storage_client_manager;
+    $this->storageConnectorManager = $storage_connection_manager;
     $this->decoder = $decoder;
-    $this->httpClient = $http_client;
     $this->entityManager = $entity_manager;
   }
 
@@ -160,10 +141,10 @@ class Query extends QueryBase implements QueryInterface {
    *   The supported condition operators.
    */
   protected function supportedOperators() {
-    return array(
+    return [
       '=',
       'IN',
-    );
+    ];
   }
 
   /**
@@ -216,26 +197,27 @@ class Query extends QueryBase implements QueryInterface {
    *   Returns the called object.
    */
   protected function finish() {
-    $bundle_id = $this->getBundle();
-    $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())->load($bundle_id);
-    $pager_settings = $bundle->getPagerSettings();
+//    $bundle_id = $this->getBundle();
+//    $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())
+//      ->load($bundle_id);
+//    $pager_settings = $bundle->getPagerSettings();
 
-    $this->initializePager();
+//    $this->initializePager();
 
-    if (!empty($pager_settings['page_parameter']) && !empty($pager_settings['page_size_parameter'])) {
-      if ($this->range) {
-        $start = $this->range['start'];
-        $end = $this->range['length'];
-        if ($pager_settings['page_parameter_type'] === 'pagenum') {
-          $start = $this->range['start'] / $this->range['length'];
-        }
-        if ($pager_settings['page_size_parameter_type'] === 'enditem') {
-          $end = $this->range['start'] + $this->range['length'];
-        }
-        $this->setParameter($pager_settings['page_parameter'], $start);
-        $this->setParameter($pager_settings['page_size_parameter'], $end);
-      }
-    }
+//    if (!empty($pager_settings['page_parameter']) && !empty($pager_settings['page_size_parameter'])) {
+//      if ($this->range) {
+//        $start = $this->range['start'];
+//        $end = $this->range['length'];
+//        if ($pager_settings['page_parameter_type'] === 'pagenum') {
+//          $start = $this->range['start'] / $this->range['length'];
+//        }
+//        if ($pager_settings['page_size_parameter_type'] === 'enditem') {
+//          $end = $this->range['start'] + $this->range['length'];
+//        }
+//        $this->setParameter($pager_settings['page_parameter'], $start);
+//        $this->setParameter($pager_settings['page_size_parameter'], $end);
+//      }
+//    }
     return $this;
   }
 
@@ -247,16 +229,17 @@ class Query extends QueryBase implements QueryInterface {
    */
   protected function result() {
     if ($this->count) {
-      return count($this->getStorageClient()->query($this->parameters));
+      return count($this->getStorageConnection()->query($this->parameters));
     }
     // Return a keyed array of results. The key is either the revision_id or
     // the entity_id depending on whether the entity type supports revisions.
     // The value is always the entity id.
     // TODO.
-    $query_results = $this->getStorageClient()->query($this->parameters);
-    $result = array();
+    $query_results = $this->getStorageConnection()->query($this->parameters);
+    $result = [];
     $bundle_id = $this->getBundle();
-    $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())->load($bundle_id);
+    $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())
+      ->load($bundle_id);
     foreach ($query_results as $query_result) {
       $id = $bundle_id . '-' . $query_result->{$bundle->getFieldMapping('id')};
       $result[$id] = $id;
@@ -265,33 +248,19 @@ class Query extends QueryBase implements QueryInterface {
   }
 
   /**
-   * Get the storage client for a bundle.
+   * Get the storage connection for a bundle.
    *
-   * @return \Drupal\external_entities\ExternalEntityStorageClientInterface
-   *   The external entity storage client.
+   * @return \Drupal\external_entities\Plugin\ExternalEntityStorageConnectionInterface
+   *   The external entity storage connection.
    */
-  protected function getStorageClient() {
-    if (!$this->storageClient) {
-      $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())->load($this->getBundle());
-      $config = [
-        'http_client' => $this->httpClient,
-        'decoder' => $this->decoder,
-        'endpoint' => $bundle->getEndpoint(),
-        'format' => $bundle->getFormat(),
-        'http_headers' => [],
-        'parameters' => $bundle->getParameters(),
-      ];
-      $api_key_settings = $bundle->getApiKeySettings();
-      if (!empty($api_key_settings['header_name']) && !empty($api_key_settings['key'])) {
-        $config['http_headers'][$api_key_settings['header_name']] = $api_key_settings['key'];
-      }
-      $this->storageClient = $this->storageClientManager->createInstance(
-        $bundle->getClient(),
-        $config
-      );
-
+  protected function getStorageConnection() {
+    if (!$this->storageConnection) {
+      /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $bundle */
+      $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())
+        ->load($this->getBundle());
+      $this->storageConnection = $bundle->getConnection();
     }
-    return $this->storageClient;
+    return $this->storageConnection;
   }
 
   /**
@@ -310,8 +279,8 @@ class Query extends QueryBase implements QueryInterface {
    */
   public function __clone() {
     parent::__clone();
-    $this->fields = array();
-    $this->groupBy = array();
+    $this->fields = [];
+    $this->groupBy = [];
   }
 
   /**

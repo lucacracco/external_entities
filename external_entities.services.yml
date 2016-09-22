@@ -1,15 +1,15 @@
 services:
   entity.query.external:
     class: Drupal\external_entities\Entity\Query\External\QueryFactory
-    arguments: ['@plugin.manager.external_entity_storage_client', '@external_entity.storage_client.response_decoder_factory', '@http_client', '@entity.manager']
+    arguments: ['@plugin.manager.external_entity_storage_connection', '@external_entity.storage_connection.response_decoder_factory', '@entity.manager']
     tags:
       - { name: backend_overridable }
-  external_entity.storage_client.response_decoder_factory:
-    class: Drupal\external_entities\ResponseDecoderFactory
+  external_entity.storage_connection.response_decoder_factory:
+    class: Drupal\external_entities\Decoder\ResponseDecoderFactory
     tags:
       - { name: service_collector, tag: external_entity_response_decoder, call: addDecoder }
-  plugin.manager.external_entity_storage_client:
-    class: Drupal\external_entities\ExternalEntityStorageClientManager
+  plugin.manager.external_entity_storage_connection:
+    class: Drupal\external_entities\Plugin\ExternalEntityStorageConnectionManager
     parent: default_plugin_manager
   entity.external_entities.routes:
     class: Drupal\external_entities\Routing\ExternalEntityRoutes

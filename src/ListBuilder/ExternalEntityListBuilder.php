@@ -5,7 +5,7 @@
  * Contains \Drupal\external_entities\ExternalEntityListBuilder.
  */
 
-namespace Drupal\external_entities;
+namespace Drupal\external_entities\ListBuilder;
 
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Entity\EntityInterface;
@@ -75,11 +75,11 @@ class ExternalEntityListBuilder extends EntityListBuilder {
       ->condition($keys['bundle'], $this->bundle)
       ->sort($keys['id']);
 
-    $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())->load($this->bundle);
-    $pager_settings = $bundle->getPagerSettings();
-    if (!empty($pager_settings['page_parameter']) && !empty($pager_settings['page_size_parameter'])) {
-      $query->pager($pager_settings['default_limit']);
-    }
+//    $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())->load($this->bundle);
+//    $pager_settings = $bundle->getPagerSettings();
+//    if (!empty($pager_settings['page_parameter']) && !empty($pager_settings['page_size_parameter'])) {
+//      $query->pager($pager_settings['default_limit']);
+//    }
 
     return $query->execute();
   }
@@ -101,13 +101,13 @@ class ExternalEntityListBuilder extends EntityListBuilder {
    */
   public function buildHeader() {
     // Enable language column and filter if multiple languages are added.
-    $header = array(
+    $header = [
       'title' => $this->t('Title'),
-      'type' => array(
+      'type' => [
         'data' => $this->t('External entity type'),
-        'class' => array(RESPONSIVE_PRIORITY_MEDIUM),
-      ),
-    );
+        'class' => [RESPONSIVE_PRIORITY_MEDIUM],
+      ],
+    ];
     return $header + parent::buildHeader();
   }
 
@@ -118,12 +118,14 @@ class ExternalEntityListBuilder extends EntityListBuilder {
     $uri = $entity->toUrl();
     $options = $uri->getOptions();
     $uri->setOptions($options);
-    $row['title']['data'] = array(
+    $row['title']['data'] = [
       '#type' => 'link',
       '#title' => $entity->label(),
       '#url' => $uri,
-    );
-    $row['type'] = Html::escape($this->entityManager->getStorage($this->entityType->getBundleEntityType())->load($entity->bundle())->label());
+    ];
+    $row['type'] = Html::escape($this->entityManager->getStorage($this->entityType->getBundleEntityType())
+      ->load($entity->bundle())
+      ->label());
     return $row + parent::buildRow($entity);
   }
 

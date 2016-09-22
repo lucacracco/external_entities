@@ -19,8 +19,11 @@ class ExternalEntitiesServiceProvider extends ServiceProviderBase {
    * {@inheritdoc}
    */
   public function alter(ContainerBuilder $container) {
-    $container->getDefinition('serialization.json')->addTag('external_entity_response_decoder');
-    $container->getDefinition('serialization.phpserialize')->addTag('external_entity_response_decoder');
-    $container->getDefinition('serialization.yaml')->addTag('external_entity_response_decoder');
+    $container->getDefinition('serialization.json')
+      ->addTag('external_entity_response_decoder');
+    $container->getDefinition('serialization.phpserialize')
+      ->addTag('external_entity_response_decoder');
+    $container->getDefinition('serialization.yaml')
+      ->addTag('external_entity_response_decoder');
   }
 }

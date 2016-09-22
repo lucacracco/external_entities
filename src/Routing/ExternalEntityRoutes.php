@@ -5,6 +5,7 @@
  */
 
 namespace Drupal\external_entities\Routing;
+
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use Drupal\Core\Entity\EntityManagerInterface;
@@ -43,7 +44,7 @@ class ExternalEntityRoutes {
         $route = new Route(
           '/external-entities',
           [
-            '_controller' => '\Drupal\external_entities\Entity\Controller\ExternalEntityListController::listing',
+            '_controller' => '\Drupal\external_entities\Controller\ExternalEntityListController::listing',
             'entity_type' => 'external_entity',
             'bundle' => $type->id(),
             '_title' => $type->label() . ' external entities',
@@ -57,7 +58,7 @@ class ExternalEntityRoutes {
       $route = new Route(
         '/external-entities/' . $type->id(),
         [
-          '_controller' => '\Drupal\external_entities\Entity\Controller\ExternalEntityListController::listing',
+          '_controller' => '\Drupal\external_entities\Controller\ExternalEntityListController::listing',
           'entity_type' => 'external_entity',
           'bundle' => $type->id(),
           '_title' => $type->label() . ' external entities',

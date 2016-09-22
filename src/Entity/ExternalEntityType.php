@@ -1,14 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\external_entities\Entity\ExternalEntityType.
- */
-
 namespace Drupal\external_entities\Entity;
 
 use Drupal\Core\Config\Entity\ConfigEntityBundleBase;
-use Drupal\external_entities\ExternalEntityTypeInterface;
+use Drupal\external_entities\Plugin\ExternalEntityStorageConnectionCollection;
 
 /**
  * Defines the External Entity type configuration entity.
@@ -19,11 +14,11 @@ use Drupal\external_entities\ExternalEntityTypeInterface;
  *   handlers = {
  *     "access" = "Drupal\Core\Entity\EntityAccessControlHandler",
  *     "form" = {
- *       "add" = "Drupal\external_entities\ExternalEntityTypeForm",
- *       "edit" = "Drupal\external_entities\ExternalEntityTypeForm",
+ *       "add" = "Drupal\external_entities\Form\ExternalEntityTypeForm",
+ *       "edit" = "Drupal\external_entities\Form\ExternalEntityTypeForm",
  *       "delete" = "Drupal\Core\Entity\EntityDeleteForm"
  *     },
- *     "list_builder" = "Drupal\external_entities\ExternalEntityTypeListBuilder",
+ *     "list_builder" = "Drupal\external_entities\ListBuilder\ExternalEntityTypeListBuilder",
  *   },
  *   admin_permission = "administer external entity types",
  *   config_prefix = "type",
@@ -43,12 +38,8 @@ use Drupal\external_entities\ExternalEntityTypeInterface;
  *     "description",
  *     "read_only",
  *     "field_mappings",
- *     "endpoint",
- *     "client",
- *     "format",
- *     "pager_settings",
- *     "api_key_settings",
- *     "parameters",
+ *     "connection",
+ *     "configuration",
  *   }
  * )
  */
@@ -87,24 +78,31 @@ class ExternalEntityType extends ConfigEntityBundleBase implements ExternalEntit
    *
    * @var array
    */
-  protected $field_mappings = array();
+  protected $field_mappings = [];
 
   /**
-   * The endpoint of this external entity type.
+   * The ExternalEntityStorageConnection plugin id.
    *
    * @var string
    */
-  protected $endpoint;
+  protected $connection = 'rest_client';
 
   /**
-   * The external entity storage client id.
+   * The configuration of the ExternalEntityStorageConnection plugin.
    *
-   * @var string
+   * @var array
    */
-  protected $client = 'rest_client';
+  protected $configuration = [];
 
   /**
-   * The format in which to make the requests for this externa entity type.
+   * The plugin collection that stores ExternalEntityStorageConnection plugins.
+   *
+   * @var \Drupal\external_entities\Plugin\ExternalEntityStorageConnectionCollection
+   */
+  protected $connectionCollection;
+
+  /**
+   * The format in which to make the requests for this external entity type.
    *
    * For example: 'json'.
    *
@@ -112,65 +110,6 @@ class ExternalEntityType extends ConfigEntityBundleBase implements ExternalEntit
    */
   protected $format = 'json';
 
-  /**
-   * An array with the pager settings.
-   *
-   * The array must contain following keys:
-   *   - 'default_limit': default number of items per page.
-   *   - 'page_parameter': The name of the page parameter.
-   *   - 'page_size_parameter': The name of the page size parameter.
-   *   - 'page_parameter_type': Either 'pagenum' or 'startitem'. Use 'pagenum'
-   *     when the pager uses page numbers to determine the item to start at, use
-   *     'startitem' when the pager uses the item number to start at.
-   *   - 'page_size_parameter_type': Either 'pagesize' or 'enditem'. Use
-   *     'pagesize' when the pager uses this parameter to determine the amount
-   *     of items on each page, use 'enditem' when the pager uses this parameter
-   *     to determine the number of the last item on the page.
-   *
-   * @var array
-   */
-  protected $pager_settings = [];
-
-  /**
-   * API key settings.
-   *
-   * An array with following keys:
-   *   - 'header_name': The HTTP header name for the API key.
-   *   - 'key': The value for the API key.
-   *
-   * @var array
-   */
-  protected $api_key_settings = [];
-
-  /**
-   * The parameters for this external entity type.
-   *
-   * @var array
-   */
-  protected $parameters = [];
-
-
-  /**
-   * {@inheritdoc}
-   */
-  public function __construct(array $values, $entity_type) {
-    parent::__construct($values, $entity_type);
-    $this->pager_settings += array(
-      'default_limit' => 10,
-      'page_parameter' => 'page',
-      'page_size_parameter' => 'pagesize',
-      'page_parameter_type' => 'pagenum',
-      'page_size_parameter_type' => 'pagesize',
-    );
-    $this->api_key_settings += array(
-      'header_name' => '',
-      'key' => '',
-    );
-    $this->parameters += array(
-      'list' => [],
-      'single' => [],
-    );
-  }
   /**
    * {@inheritdoc}
    */
@@ -209,15 +148,31 @@ class ExternalEntityType extends ConfigEntityBundleBase implements ExternalEntit
   /**
    * {@inheritdoc}
    */
-  public function getEndpoint() {
-    return $this->endpoint;
+  public function getConnection() {
+    return $this->getPluginCollection()->get($this->connection);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getClient() {
-    return $this->client;
+  public function getConnectionId() {
+    return $this->connection;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setConnection($external_entity_storage_connection_id) {
+    $this->connection = $external_entity_storage_connection_id;
+    $this->getPluginCollection()
+      ->addInstanceID($external_entity_storage_connection_id);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setConfiguration(array $configuration) {
+    $this->configuration = $configuration;
   }
 
   /**
@@ -228,31 +183,33 @@ class ExternalEntityType extends ConfigEntityBundleBase implements ExternalEntit
   }
 
   /**
-   * {@inheritdoc}
+   * Encapsulates the creation of the ExternalEntityType's LazyPluginCollection.
+   *
+   * @return \Drupal\Component\Plugin\LazyPluginCollection
+   *   The ExternalEntityType's plugin collection.
    */
-  public function getPagerSettings() {
-    return $this->pager_settings;
+  protected function getPluginCollection() {
+    if (!$this->connectionCollection) {
+      $this->connectionCollection = new ExternalEntityStorageConnectionCollection($this->externalEntityStorageConnectionManager(), $this->connection, $this->configuration, $this->id());
+    }
+    return $this->connectionCollection;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getApiKeySettings() {
-    return $this->api_key_settings;
+  public function getPluginCollections() {
+    return ['configuration' => $this->getPluginCollection()];
   }
 
   /**
-   * {@inheritdoc}
+   * Wraps the ExternalEntityStorageConnection plugin manager.
+   *
+   * @return \Drupal\Component\Plugin\PluginManagerInterface
+   *   A ExternalEntityStorageConnection plugin manager object.
    */
-  public function getParameters() {
-    return $this->parameters;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getTypeParameters($type) {
-    return isset($this->parameters[$type]) ? $this->parameters[$type] : [];
+  protected function externalEntityStorageConnectionManager() {
+    return \Drupal::service('plugin.manager.external_entity_storage_connection');
   }
 
 }

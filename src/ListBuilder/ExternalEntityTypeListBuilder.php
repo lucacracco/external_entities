@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\external_entities\ExternalEntityTypeListBuilder.
+ * Contains \Drupal\external_entities\ListBuilder\ExternalEntityTypeListBuilder.
  */
 
-namespace Drupal\external_entities;
+namespace Drupal\external_entities\ListBuilder;
 
 use Drupal\Core\Config\Entity\ConfigEntityListBuilder;
 use Drupal\Core\Entity\EntityTypeInterface;
@@ -60,10 +60,10 @@ class ExternalEntityTypeListBuilder extends ConfigEntityListBuilder {
    */
   public function buildHeader() {
     $header['title'] = t('Label');
-    $header['description'] = array(
+    $header['description'] = [
       'data' => t('Description'),
-      'class' => array(RESPONSIVE_PRIORITY_MEDIUM),
-    );
+      'class' => [RESPONSIVE_PRIORITY_MEDIUM],
+    ];
     return $header + parent::buildHeader();
   }
 
@@ -71,10 +71,10 @@ class ExternalEntityTypeListBuilder extends ConfigEntityListBuilder {
    * {@inheritdoc}
    */
   public function buildRow(EntityInterface $entity) {
-    $row['title'] = array(
+    $row['title'] = [
       'data' => $this->getLabel($entity),
-      'class' => array('menu-label'),
-    );
+      'class' => ['menu-label'],
+    ];
     $row['description'] = Xss::filterAdmin($entity->getDescription());
     return $row + parent::buildRow($entity);
   }
@@ -97,9 +97,9 @@ class ExternalEntityTypeListBuilder extends ConfigEntityListBuilder {
    */
   public function render() {
     $build = parent::render();
-    $build['#empty'] = t('No external types available. <a href="@link">Add external type</a>.', array(
+    $build['#empty'] = t('No external types available. <a href="@link">Add external type</a>.', [
       '@link' => $this->urlGenerator->generateFromRoute('external_entity.type_add'),
-    ));
+    ]);
     return $build;
   }
 

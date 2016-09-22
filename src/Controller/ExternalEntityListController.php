@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\external_entities\Entity\Controller\ExternalEntityListController.
+ * Contains \Drupal\external_entities\Controller\ExternalEntityListController.
  */
 
-namespace Drupal\external_entities\Entity\Controller;
+namespace Drupal\external_entities\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 
@@ -26,6 +26,9 @@ class ExternalEntityListController extends ControllerBase {
    *   A render array as expected by drupal_render().
    */
   public function listing($entity_type, $bundle) {
-    return $this->entityManager()->getListBuilder($entity_type)->setBundle($bundle)->render();
+    return $this->entityManager()
+      ->getListBuilder($entity_type)
+      ->setBundle($bundle)
+      ->render();
   }
 }

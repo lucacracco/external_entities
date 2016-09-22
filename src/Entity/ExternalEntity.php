@@ -8,13 +8,9 @@
 namespace Drupal\external_entities\Entity;
 
 use Drupal\Core\Entity\ContentEntityBase;
-use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
-use Drupal\Core\Language\LanguageInterface;
-use Drupal\Core\Session\AccountInterface;
-use Drupal\external_entities\ExternalEntityInterface;
 
 /**
  * Defines the external enttiy entity class.
@@ -24,19 +20,19 @@ use Drupal\external_entities\ExternalEntityInterface;
  *   label = @Translation("External entity"),
  *   bundle_label = @Translation("External entity type"),
  *   handlers = {
- *     "storage" = "Drupal\external_entities\ExternalEntityStorage",
- *     "storage_schema" = "Drupal\external_entities\ExternalEntityStorageSchema",
+ *     "storage" = "Drupal\external_entities\Storage\ExternalEntityStorage",
+ *     "storage_schema" = "Drupal\external_entities\Storage\ExternalEntityStorageSchema",
  *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
- *     "access" = "Drupal\external_entities\ExternalEntityAccessControlHandler",
+ *     "access" = "Drupal\external_entities\Access\ExternalEntityAccessControlHandler",
  *     "form" = {
- *       "default" = "Drupal\external_entities\ExternalEntityForm",
+ *       "default" = "Drupal\external_entities\Form\ExternalEntityForm",
  *       "delete" = "Drupal\Core\Entity\ContentEntityDeleteForm",
- *       "edit" = "Drupal\external_entities\ExternalEntityForm"
+ *       "edit" = "Drupal\external_entities\Form\ExternalEntityForm"
  *     },
  *     "route_provider" = {
- *       "html" = "Drupal\external_entities\Entity\ExternalEntityRouteProvider",
+ *       "html" = "Drupal\external_entities\Routing\ExternalEntityRouteProvider",
  *     },
- *     "list_builder" = "Drupal\external_entities\ExternalEntityListBuilder",
+ *     "list_builder" = "Drupal\external_entities\ListBuilder\ExternalEntityListBuilder",
  *   },
  *   translatable = FALSE,
  *   entity_keys = {
@@ -127,15 +123,15 @@ class ExternalEntity extends ContentEntityBase implements ExternalEntityInterfac
       ->setRevisionable(FALSE)
       ->setDefaultValue('')
       ->setSetting('max_length', 255)
-      ->setDisplayOptions('view', array(
+      ->setDisplayOptions('view', [
         'label' => 'hidden',
         'type' => 'string',
         'weight' => -5,
-      ))
-      ->setDisplayOptions('form', array(
+      ])
+      ->setDisplayOptions('form', [
         'type' => 'string_textfield',
         'weight' => -5,
-      ))
+      ])
       ->setDisplayConfigurable('form', TRUE);
 
     return $fields;
@@ -145,12 +141,16 @@ class ExternalEntity extends ContentEntityBase implements ExternalEntityInterfac
    * {@inheritdoc}
    */
   public function getMappedObject() {
-    $bundle = $this->entityManager()->getStorage('external_entity_type')->load($this->bundle());
+    /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $bundle */
+    $bundle = $this->entityManager()
+      ->getStorage('external_entity_type')
+      ->load($this->bundle());
     $object = new \stdClass();
     foreach ($bundle->getFieldMappings() as $source => $destination) {
       $field_definition = $this->getFieldDefinition($source);
       $settings = $field_definition->getSettings();
-      $property = $field_definition->getFieldStorageDefinition()->getMainPropertyName();
+      $property = $field_definition->getFieldStorageDefinition()
+        ->getMainPropertyName();
 
       // Special case for references to external entities.
       if (isset($settings['target_type']) && $settings['target_type'] === 'external_entity') {
@@ -169,12 +169,16 @@ class ExternalEntity extends ContentEntityBase implements ExternalEntityInterfac
    * {@inheritdoc}
    */
   public function mapObject(\stdClass $object) {
-    $bundle = $this->entityManager()->getStorage('external_entity_type')->load($this->bundle());
+    /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $bundle */
+    $bundle = $this->entityManager()
+      ->getStorage('external_entity_type')
+      ->load($this->bundle());
 
     foreach ($bundle->getFieldMappings() as $destination => $source) {
       $field_definition = $this->getFieldDefinition($destination);
       $settings = $field_definition->getSettings();
-      $property = $field_definition->getFieldStorageDefinition()->getMainPropertyName();
+      $property = $field_definition->getFieldStorageDefinition()
+        ->getMainPropertyName();
 
       // Special case for references to external entities.
       if (isset($settings['target_type']) && $settings['target_type'] === 'external_entity') {
