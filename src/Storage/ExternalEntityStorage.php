@@ -72,6 +72,7 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
     parent::__construct($entity_type, $entity_manager, $cache);
     $this->storageConnectionManager = $storage_connection_manager;
     $this->decoder = $decoder;
+    $this->cacheBackend = $cache;
   }
 
   /**
@@ -134,12 +135,14 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
     foreach ($ids as $id) {
       if (strpos($id, '-')) {
         list($bundle, $external_id) = explode('-', $id);
-
-        // TODO: add layer cache. @see SqlContentEntityStorage:doLoadMultiple().
-
-        $entities[$id] = $this->create([$this->entityType->getKey('bundle') => $bundle])
-          ->mapObject($this->getStorageConnection($bundle)->load($external_id))
-          ->enforceIsNew(FALSE);
+        if ($cached = $this->cacheBackend->get('external-entity:'.$bundle.':'.$external_id)) {
+          $entities[$id] = $cached->data;
+        } else {
+          $entities[$id] = $this->create([$this->entityType->getKey('bundle') => $bundle])
+            ->mapObject($this->getStorageConnection($bundle)->load($external_id))
+            ->enforceIsNew(FALSE);
+          $this->cacheBackend->set('external-entity:'.$bundle.':'.$external_id, $entities[$id], CacheBackendInterface::CACHE_PERMANENT);
+        }
       }
     }
     return $entities;
