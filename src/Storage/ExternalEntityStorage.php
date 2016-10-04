@@ -141,14 +141,14 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
     foreach ($ids as $id) {
       if (strpos($id, '-')) {
         list($bundle, $external_id) = explode('-', $id);
-        if ($cached = $this->cacheBackend->get($this->buildCacheId($id))) {
-          $entities[$id] = $cached->data;
-        } else {
+//        if ($cached = $this->cacheBackend->get($this->buildCacheId($id))) {
+//          $entities[$id] = $cached->data;
+//        } else {
           $entities[$id] = $this->create([$this->entityType->getKey('bundle') => $bundle])
             ->mapObject($this->getStorageConnection($bundle)->load($external_id))
             ->enforceIsNew(FALSE);
-          $this->cacheBackend->set($this->buildCacheId($id), $entities[$id], CacheBackendInterface::CACHE_PERMANENT, $cache_tags);
-        }
+//          $this->cacheBackend->set($this->buildCacheId($id), $entities[$id], CacheBackendInterface::CACHE_PERMANENT, $cache_tags);
+//        }
       }
     }
     return $entities;

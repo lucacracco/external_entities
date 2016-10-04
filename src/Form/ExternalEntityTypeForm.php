@@ -154,6 +154,11 @@ class ExternalEntityTypeForm extends EntityForm {
       '#open' => TRUE,
     ];
 
+    $form['field_mappings']['help'] = [
+      '#markup' => $this->t('Is it possible to use XPath syntax directly in 
+      order to navigate through the hierarchy of the result. Es. \'id/0/value\''),
+    ];
+
     foreach ($fields as $field) {
       $form['field_mappings'][$field->getName()] = [
         '#title' => $field->getLabel(),
@@ -369,7 +374,10 @@ class ExternalEntityTypeForm extends EntityForm {
     }
     elseif ($status == SAVED_NEW) {
       drupal_set_message(t('The external entity type %name has been added.', $t_args));
-      $context = array_merge($t_args, ['link' => $type->toLink($this->t('View'), 'collection')->toString()]);
+      $context = array_merge($t_args, [
+        'link' => $type->toLink($this->t('View'), 'collection')
+          ->toString()
+      ]);
       $this->logger('external_entities')
         ->notice('Added external entity type %name.', $context);
     }

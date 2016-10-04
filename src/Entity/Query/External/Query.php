@@ -221,7 +221,9 @@ class Query extends QueryBase implements QueryInterface {
     $bundle = $this->entityManager->getStorage($this->entityType->getBundleEntityType())
       ->load($bundle_id);
     foreach ($query_results as $query_result) {
-      $id = $bundle_id . '-' . $query_result->{$bundle->getFieldMapping('id')};
+      $name_mapping = $bundle->getFieldMapping('id');
+      $entity_id = \Drupal\external_entities\Entity\ExternalEntity::getDescendant($name_mapping, $query_result);
+      $id = $bundle_id . '-' . $entity_id;
       $result[$id] = $id;
     }
     return $result;

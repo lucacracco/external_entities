@@ -43,6 +43,7 @@ class RestClient extends HttpClientBase {
     // Retrieve and build options call.
     $options = [
       'headers' => $this->getHttpHeaders(),
+      'query' => [],
     ];
     if ($this->configuration['single']) {
       $options['query'] += $this->configuration['single'];

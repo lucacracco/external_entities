@@ -118,12 +118,6 @@ abstract class HttpClientBase extends ConfigurableExternalEntityStorageConnector
     // Remove the description form item element value so it will not persist.
     $form_state->unsetValue('description');
 
-    // API Key Settings.
-    foreach ($form_state->getValue('api_key_settings') as $key => $value) {
-      $form_state->setValue($key, $value);
-    }
-    $form_state->unsetValue('api_key_settings');
-
     // Validation of Parameters.
     foreach (['list', 'single'] as $type) {
       $string = $form_state->getValue(['parameters', $type]);

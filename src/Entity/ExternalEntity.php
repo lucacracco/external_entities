@@ -187,10 +187,41 @@ class ExternalEntity extends ContentEntityBase implements ExternalEntityInterfac
         $this->get($destination)->{$property} = $target_bundle . '-' . $object->{$source};
       }
       else {
-        $this->get($destination)->{$property} = $object->{$source};
+        $name_mapping = $bundle->getFieldMapping($destination);
+        $data = $this->getDescendant($name_mapping, $object);
+        $this->get($destination)->{$property} = $data;
       }
     }
     return $this;
+  }
+
+  /**
+   * @param $path
+   * @param $var
+   * @return mixed|null
+   */
+  public static function getDescendant($path, $var) {
+    // Separate the path into an array of components
+    $path_parts = explode('/', $path);
+
+    // Loop over the parts of the path specified
+    foreach ($path_parts as $property) {
+      // Check that it's a valid access
+      if (is_object($var) && isset($var->$property)) {
+        // Traverse to the specified property,
+        // overwriting the same variable
+        $var = $var->$property;
+      }
+      elseif (is_array($var) && isset($var[$property])) {
+        $var = $var[$property];
+      }
+      else {
+        return NULL;
+      }
+    }
+
+    // Our variable has now traversed the specified path
+    return $var;
   }
 
 }
