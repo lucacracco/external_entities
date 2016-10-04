@@ -16,6 +16,9 @@ external_entities.type.*:
     read_only:
       type: boolean
       label: 'Read only'
+    cacheable:
+      type: boolean
+      label: 'Cacheable'
     field_mappings:
       type: sequence
       label: 'Field mappings'

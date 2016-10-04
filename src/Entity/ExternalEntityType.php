@@ -37,6 +37,7 @@ use Drupal\external_entities\Plugin\ExternalEntityStorageConnectionCollection;
  *     "type",
  *     "description",
  *     "read_only",
+ *     "cacheable",
  *     "field_mappings",
  *     "connection",
  *     "configuration",
@@ -72,6 +73,13 @@ class ExternalEntityType extends ConfigEntityBundleBase implements ExternalEntit
    * @var boolean
    */
   protected $read_only;
+
+  /**
+   * Indicates if the bundle entity should be used.
+   *
+   * @var boolean
+   */
+  protected $cacheable;
 
   /**
    * The field mappings for this external entity type.
@@ -129,6 +137,13 @@ class ExternalEntityType extends ConfigEntityBundleBase implements ExternalEntit
    */
   public function isReadOnly() {
     return $this->read_only;
+  }
+
+  /**
+   * @inheritdoc
+   */
+  public function isCacheable() {
+    return $this->cacheable;
   }
 
   /**

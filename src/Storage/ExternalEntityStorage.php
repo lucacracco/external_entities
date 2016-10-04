@@ -131,26 +131,70 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
    */
   protected function doLoadMultiple(array $ids = NULL) {
 
-    $cache_tags = [
-      $this->entityTypeId . '_values',
-      'entity_field_info',
-    ];
-
-    $entities = [];
-
+    // Group by entity type bundle for retrieve information of cache implementation.
+    $group_ids = [];
     foreach ($ids as $id) {
       if (strpos($id, '-')) {
-        list($bundle, $external_id) = explode('-', $id);
-//        if ($cached = $this->cacheBackend->get($this->buildCacheId($id))) {
-//          $entities[$id] = $cached->data;
-//        } else {
-          $entities[$id] = $this->create([$this->entityType->getKey('bundle') => $bundle])
-            ->mapObject($this->getStorageConnection($bundle)->load($external_id))
-            ->enforceIsNew(FALSE);
-//          $this->cacheBackend->set($this->buildCacheId($id), $entities[$id], CacheBackendInterface::CACHE_PERMANENT, $cache_tags);
-//        }
+        $tmp = explode("-", $id);
+        $group_ids[$tmp[0]][] = $id;
       }
     }
+
+    foreach($group_ids as $group_bundle => $ids) {
+
+      /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $bundle */
+      $bundle = $this->entityManager->getStorage('external_entity_type')->load($group_bundle);
+
+      $entities_from_cache = [];
+      if ($bundle->isCacheable()) {
+        // Attempt to load entities from the persistent cache. This will remove IDs
+        // that were loaded from $ids.
+        $entities_from_cache = $this->getFromPersistentCache($ids);
+      }
+
+      // Load any remaining entities from the database.
+      if ($entities_from_storage = $this->getFromStorage($ids)) {
+        $this->invokeStorageLoadHook($entities_from_storage);
+        $this->setPersistentCache($entities_from_storage);
+      }
+      return $entities_from_cache + $entities_from_storage;
+    }
+
+    return [];
+  }
+
+  /**
+   * Gets entities from the storage.
+   *
+   * @param array|null $ids
+   *   If not empty, return entities that match these IDs. Return all entities
+   *   when NULL.
+   *
+   * @return \Drupal\Core\Entity\ContentEntityInterface[]
+   *   Array of entities from the storage.
+   */
+  protected function getFromStorage(array $ids = NULL) {
+    $entities = [];
+
+    if (!empty($ids)) {
+      // Sanitize IDs. Before feeding ID array into buildQuery, check whether
+      // it is empty as this would load all entities.
+      $ids = $this->cleanIds($ids);
+    }
+
+    if ($ids === NULL || $ids) {
+      foreach ($ids as $id) {
+
+        $bundle = $id[0];
+        $external_id = $id[1];
+
+        $entities[implode('-', $id)] = $this->create([$this->entityType->getKey('bundle') => $bundle])
+          ->mapObject($this->getStorageConnection($bundle)
+            ->load($external_id))
+          ->enforceIsNew(FALSE);
+      }
+    }
+
     return $entities;
   }
 
@@ -243,6 +287,34 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
    */
   public function hasData() {
     return FALSE;
+  }
+
+  /**
+   * Ensures integer entity IDs are valid.
+   *
+   * The identifier sanitization provided by this method has been introduced
+   * as Drupal used to rely on the database to facilitate this, which worked
+   * correctly with MySQL but led to errors with other DBMS such as PostgreSQL.
+   *
+   * @param array $ids
+   *   The entity IDs to verify.
+   *
+   * @return array
+   *   The sanitized list of entity IDs.
+   */
+  protected function cleanIds(array $ids) {
+    $definitions = $this->entityManager->getBaseFieldDefinitions($this->entityTypeId);
+    $id_definition = $definitions[$this->entityType->getKey('id')];
+    if ($id_definition->getType() == 'string') {
+      $ids = array_filter($ids, function ($id) {
+        return is_string($id) && strpos($id, '-');
+      });
+
+      $ids = array_map(function ($id) {
+        return explode('-', $id);
+      }, $ids);
+    }
+    return $ids;
   }
 
 }

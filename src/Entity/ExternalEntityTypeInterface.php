@@ -33,6 +33,13 @@ interface ExternalEntityTypeInterface extends EntityWithPluginCollectionInterfac
   public function isReadOnly();
 
   /**
+   * Indicates if the bundle entity should be used.
+   *
+   * @return bool
+   */
+  public function isCacheable();
+
+  /**
    * Returns the field mappings of this external entity type.
    *
    * @return array

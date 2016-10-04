@@ -140,6 +140,13 @@ class ExternalEntityTypeForm extends EntityForm {
       '#description' => $this->t('Wheter or not this external entity type is read only.'),
     ];
 
+    $form['cacheable'] = [
+      '#title' => $this->t('Cacheable'),
+      '#type' => 'checkbox',
+      '#default_value' => $type->isCacheable(),
+      '#description' => $this->t('Wheter or not this external entity type is cacheable.'),
+    ];
+
     $form['additional_settings'] = [
       '#type' => 'vertical_tabs',
       '#attached' => [
