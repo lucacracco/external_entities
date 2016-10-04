@@ -130,18 +130,23 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
    * {@inheritdoc}
    */
   protected function doLoadMultiple(array $ids = NULL) {
-    $entities = [];
 
+    $cache_tags = array(
+      $this->entityTypeId . '_values',
+      'entity_field_info',
+    );
+
+    $entities = array();
     foreach ($ids as $id) {
       if (strpos($id, '-')) {
         list($bundle, $external_id) = explode('-', $id);
-        if ($cached = $this->cacheBackend->get('external-entity:'.$bundle.':'.$external_id)) {
+        if ($cached = $this->cacheBackend->get($this->buildCacheId($id))) {
           $entities[$id] = $cached->data;
         } else {
           $entities[$id] = $this->create([$this->entityType->getKey('bundle') => $bundle])
             ->mapObject($this->getStorageConnection($bundle)->load($external_id))
             ->enforceIsNew(FALSE);
-          $this->cacheBackend->set('external-entity:'.$bundle.':'.$external_id, $entities[$id], CacheBackendInterface::CACHE_PERMANENT);
+         $this->cacheBackend->set($this->buildCacheId($id), $entities[$id], CacheBackendInterface::CACHE_PERMANENT, $cache_tags);
         }
       }
     }

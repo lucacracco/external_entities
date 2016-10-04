@@ -369,7 +369,7 @@ class ExternalEntityTypeForm extends EntityForm {
     }
     elseif ($status == SAVED_NEW) {
       drupal_set_message(t('The external entity type %name has been added.', $t_args));
-      $context = array_merge($t_args, ['link' => $type->toLink($this->t('View'), 'collection')]);
+      $context = array_merge($t_args, ['link' => $type->toLink($this->t('View'), 'collection')->toString()]);
       $this->logger('external_entities')
         ->notice('Added external entity type %name.', $context);
     }
