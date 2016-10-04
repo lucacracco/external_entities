@@ -1,17 +1,23 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: emanuel
+ * Date: 04/10/16
+ * Time: 14.13
+ */
 
 namespace Drupal\external_entities\Plugin\ExternalEntityStorageConnection;
 
 use Drupal\external_entities\Plugin\HttpClientBase;
 
 /**
- * REST implementation of an external entity storage connection.
+ * Views REST implementation of an external entity storage connection.
  *
  * @ExternalEntityStorageConnection(
- *   id = "rest_client",
+ *   id = "views_rest_client",
  *   provider = "external_entities",
- *   name = "REST",
- *   description = "REST implementation of an external entity storage connection",
+ *   name = "Views REST",
+ *   description = "REST implementation of an external entity storage connection specific for Views data export",
  *   settings = {
  *    "endpoint" = "",
  *    "header_name" = NULL,
@@ -21,8 +27,8 @@ use Drupal\external_entities\Plugin\HttpClientBase;
  *   },
  * )
  */
-class RestClient extends HttpClientBase {
 
+class ViewsRestClient extends HttpClientBase {
   /**
    * {@inheritdoc}
    */
@@ -62,7 +68,7 @@ class RestClient extends HttpClientBase {
       ->decode($body);
 
     // Retrieve result object.
-    $result = (object) $result;
+    $result = (object) $result[0];
     return $result;
   }
 
@@ -129,5 +135,4 @@ class RestClient extends HttpClientBase {
     }
     return $results;
   }
-
 }
