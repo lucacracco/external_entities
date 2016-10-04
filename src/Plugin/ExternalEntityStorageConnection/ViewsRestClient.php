@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: emanuel
- * Date: 04/10/16
- * Time: 14.13
- */
 
 namespace Drupal\external_entities\Plugin\ExternalEntityStorageConnection;
 
