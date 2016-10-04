@@ -131,12 +131,13 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
    */
   protected function doLoadMultiple(array $ids = NULL) {
 
-    $cache_tags = array(
+    $cache_tags = [
       $this->entityTypeId . '_values',
       'entity_field_info',
-    );
+    ];
 
-    $entities = array();
+    $entities = [];
+
     foreach ($ids as $id) {
       if (strpos($id, '-')) {
         list($bundle, $external_id) = explode('-', $id);
@@ -146,7 +147,7 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
           $entities[$id] = $this->create([$this->entityType->getKey('bundle') => $bundle])
             ->mapObject($this->getStorageConnection($bundle)->load($external_id))
             ->enforceIsNew(FALSE);
-         $this->cacheBackend->set($this->buildCacheId($id), $entities[$id], CacheBackendInterface::CACHE_PERMANENT, $cache_tags);
+          $this->cacheBackend->set($this->buildCacheId($id), $entities[$id], CacheBackendInterface::CACHE_PERMANENT, $cache_tags);
         }
       }
     }
