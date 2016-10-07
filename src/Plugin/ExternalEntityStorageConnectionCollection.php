@@ -55,7 +55,7 @@ class ExternalEntityStorageConnectionCollection extends DefaultSingleLazyPluginC
     try {
       parent::initializePlugin($instance_id);
       $plugin_instance = $this->pluginInstances[$instance_id];
-      if ($plugin_instance instanceof ExternalEntityStorageConnectionInterface) {
+      if ($plugin_instance instanceof ExternalEntityStorageConnectionInterface && $this->externalEntityType !== NULL) {
         $plugin_instance->setExternalEntity($this->externalEntityType);
       }
     } catch (PluginException $e) {
