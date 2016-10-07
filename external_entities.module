@@ -68,3 +68,27 @@ function template_preprocess_external_entity(&$variables) {
     $variables['content'][$key] = $variables['elements'][$key];
   }
 }
+
+/**
+ * Implements hook_form_alter().
+ */
+function external_entities_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+
+  if ($form_id === 'field_storage_config_edit_form') {
+
+    /** @var \Drupal\field\FieldStorageConfigInterface $entity */
+    $entity = $form_state->getFormObject()->getEntity();
+
+    // Not applied for entity not external_entity.
+    if ($entity->get('entity_type') !== "external_entity") {
+      return;
+    }
+
+    // Unset FieldStorageConfigEditForm::validateForm() for validation cardinality.
+    $pos = array_search('::validateForm', $form['#validate']);
+    if ($pos !== FALSE) {
+      unset($form['#validate'][$pos]);
+    }
+
+  }
+}
