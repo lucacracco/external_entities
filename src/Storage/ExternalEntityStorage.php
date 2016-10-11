@@ -140,10 +140,11 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
       }
     }
 
-    foreach($group_ids as $group_bundle => $ids) {
+    foreach ($group_ids as $group_bundle => $ids) {
 
       /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $bundle */
-      $bundle = $this->entityManager->getStorage('external_entity_type')->load($group_bundle);
+      $bundle = $this->entityManager->getStorage('external_entity_type')
+        ->load($group_bundle);
 
       $entities_from_cache = [];
       if ($bundle->isCacheable()) {
@@ -188,10 +189,16 @@ class ExternalEntityStorage extends ContentEntityStorageBase {
         $bundle = $id[0];
         $external_id = $id[1];
 
-        $entities[implode('-', $id)] = $this->create([$this->entityType->getKey('bundle') => $bundle])
-          ->mapObject($this->getStorageConnection($bundle)
-            ->load($external_id))
-          ->enforceIsNew(FALSE);
+        $record = $this->getStorageConnection($bundle)->load($external_id);
+
+        $entities[implode('-', $id)] =
+          $this->create(
+            [
+              $this->entityType->getKey('bundle') => $bundle
+            ]
+          )
+            ->mapFromStorageRecords($record)
+            ->enforceIsNew(FALSE);
       }
     }
 

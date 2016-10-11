@@ -96,7 +96,7 @@ class RestClient extends HttpClientBase {
     // @todo: is it standard REST to return the new entity?
     $object = (object) $this->decoder->getDecoder($this->externalEntityType->getFormat())
       ->decode($response->getBody());
-    $entity->mapObject($object);
+    $entity->mapFromStorageRecords($object);
     return $result;
   }
 

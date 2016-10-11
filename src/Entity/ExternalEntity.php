@@ -168,30 +168,54 @@ class ExternalEntity extends ContentEntityBase implements ExternalEntityInterfac
   /**
    * {@inheritdoc}
    */
-  public function mapObject(\stdClass $object) {
+  public function mapFromStorageRecords(\stdClass $object) {
     /** @var \Drupal\external_entities\Entity\ExternalEntityTypeInterface $bundle */
     $bundle = $this->entityManager()
       ->getStorage('external_entity_type')
       ->load($this->bundle());
 
-    foreach ($bundle->getFieldMappings() as $destination => $source) {
-      $field_definition = $this->getFieldDefinition($destination);
-      $settings = $field_definition->getSettings();
-      $property = $field_definition->getFieldStorageDefinition()
-        ->getMainPropertyName();
+    foreach ($this->getFieldDefinitions() as $field_name => $field_definition) {
 
-      // Special case for references to external entities.
-      if (isset($settings['target_type']) && $settings['target_type'] === 'external_entity') {
-        // Only 1 bundle is allowed.
-        $target_bundle = reset($settings['handler_settings']['target_bundles']);
-        $this->get($destination)->{$property} = $target_bundle . '-' . $object->{$source};
+      // Base Field Definition.
+      if ($field_definition instanceof \Drupal\Core\Field\BaseFieldDefinition) {
+
+        $source_mapping = $bundle->getFieldMapping($field_name);
+        $property = $field_definition->getFieldStorageDefinition()
+          ->getMainPropertyName();
+        if ($source_mapping != FALSE && $source_mapping != '') {
+          $data = $this->getDescendant($source_mapping, $object);
+          $this->get($field_name)->{$property} = $data;
+        }
+
       }
-      else {
-        $name_mapping = $bundle->getFieldMapping($destination);
-        $data = $this->getDescendant($name_mapping, $object);
-        $this->get($destination)->{$property} = $data;
+      // Field Definition.
+      elseif ($field_definition instanceof \Drupal\field\Entity\FieldConfig) {
+
+        $third_settings = $field_definition->getThirdPartySetting('external_entities', _external_entities_name_mapping_settings($field_definition, $field_name), NULL);
+        $field_storage = $field_definition->getFieldStorageDefinition();
+        $settings = $field_definition->getSettings();
+        $properties = $field_storage->getPropertyNames();
+
+        // Special case for references to external entities.
+        if (isset($settings['target_type']) && $settings['target_type'] === 'external_entity') {
+          $target_bundle = reset($settings['handler_settings']['target_bundles']);
+          $property = "target_id";
+          if (isset($third_settings[$property])) {
+            $data = $this->getDescendant($third_settings[$property], $object);
+            $this->get($field_name)->{$property} = $target_bundle . '-' . $data;
+            continue;
+          }
+        }
+
+        foreach ($properties as $property) {
+          if (isset($third_settings[$property]) && $third_settings[$property] != '') {
+            $data = $this->getDescendant($third_settings[$property], $object);
+            $this->get($field_name)->{$property} = $data;
+          }
+        }
       }
     }
+
     return $this;
   }
 

@@ -80,27 +80,10 @@ class ExternalEntityTypeForm extends EntityForm {
 
     if ($this->operation == 'add') {
       $form['#title'] = Html::escape($this->t('Add external entity type'));
-      $base_fields = $this->entityManager->getBaseFieldDefinitions('external_entity');
-      $fields = $this->entityManager->getFieldDefinitions('external_entity', $type->id());
-      // Create an external entity with a fake bundle using the type's UUID so
-      // that we can get the default values for workflow settings.
-      // @todo Make it possible to get default values without an entity.
-      //   https://www.drupal.org/node/2318187
-      $node = $this->entityManager->getStorage('external_entity')
-        ->create(['type' => $type->uuid()]);
     }
     else {
       $form['#title'] = $this->t('Edit %label external entity type', ['%label' => $type->label()]);
-      $base_fields = $this->entityManager->getFieldDefinitions('external_entity', $type->id());
-      $fields = $this->entityManager->getFieldDefinitions('external_entity', $type->id());
-      // Create a node to get the current values for workflow settings fields.
-      $node = $this->entityManager->getStorage('external_entity')
-        ->create(['type' => $type->id()]);
     }
-    unset($fields[$this->entityManager->getDefinition('external_entity')
-        ->getKey('uuid')]);
-    unset($fields[$this->entityManager->getDefinition('external_entity')
-        ->getKey('bundle')]);
 
     $form['label'] = [
       '#title' => $this->t('Name'),
@@ -166,7 +149,12 @@ class ExternalEntityTypeForm extends EntityForm {
       order to navigate through the hierarchy of the result. Es. \'id/0/value\''),
     ];
 
-    foreach ($fields as $field) {
+    $base_fields = $this->entityManager->getBaseFieldDefinitions('external_entity');
+    unset($base_fields[$this->entityManager->getDefinition('external_entity')
+        ->getKey('uuid')]);
+    unset($base_fields[$this->entityManager->getDefinition('external_entity')
+        ->getKey('bundle')]);
+    foreach ($base_fields as $field) {
       $form['field_mappings'][$field->getName()] = [
         '#title' => $field->getLabel(),
         '#type' => 'textfield',

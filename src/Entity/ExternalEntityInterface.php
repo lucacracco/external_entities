@@ -44,6 +44,6 @@ interface ExternalEntityInterface extends ContentEntityInterface {
    *
    * @return $this
    */
-  public function mapObject(\stdClass $object);
+  public function mapFromStorageRecords(\stdClass $object);
 
 }

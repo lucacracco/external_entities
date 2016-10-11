@@ -5,6 +5,7 @@
  */
 
 use Drupal\Component\Utility\Xss;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Url;
 
@@ -74,13 +75,14 @@ function template_preprocess_external_entity(&$variables) {
  */
 function external_entities_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
 
+  // form field storage.
   if ($form_id === 'field_storage_config_edit_form') {
 
-    /** @var \Drupal\field\FieldStorageConfigInterface $entity */
-    $entity = $form_state->getFormObject()->getEntity();
+    /** @var \Drupal\field\FieldStorageConfigInterface $field */
+    $field = $form_state->getFormObject()->getEntity();
 
     // Not applied for entity not external_entity.
-    if ($entity->get('entity_type') !== "external_entity") {
+    if ($field->getTargetEntityTypeId() !== "external_entity") {
       return;
     }
 
@@ -89,6 +91,67 @@ function external_entities_form_alter(&$form, \Drupal\Core\Form\FormStateInterfa
     if ($pos !== FALSE) {
       unset($form['#validate'][$pos]);
     }
-
   }
+
+  // Form field instance.
+  if ($form_id === 'field_config_edit_form') {
+
+    /** @var \Drupal\field\FieldConfigInterface $field_conf */
+    $field_conf = $form_state->getFormObject()->getEntity();
+    /** @var \Drupal\Core\Field\FieldStorageDefinitionInterface $field_storage */
+    $field_storage = $field_conf->getFieldStorageDefinition();
+
+    $form['external_entities_mapping_fields'] = [
+      '#type' => 'details',
+      '#title' => t('Mapping fields'),
+      '#tree' => TRUE,
+    ];
+
+    $properties = $field_storage->getPropertyNames();
+    $third_settings = $field_conf->getThirdPartySetting('external_entities', _external_entities_name_mapping_settings($field_conf, $field_conf->getName()));
+    foreach ($properties as $property_name) {
+      $form['external_entities_mapping_fields'][$property_name] = [
+        '#type' => 'textfield',
+        '#title' => t(ucfirst($property_name)),
+        '#default_value' => $third_settings[$property_name],
+      ];
+    }
+
+    $form['actions']['submit']['#submit'][] = 'external_entities_mapping_fields_submit';
+  }
+}
+
+/**
+ * Submit form custom for store third settings.
+ */
+function external_entities_mapping_fields_submit($form, FormStateInterface $form_state) {
+  /** @var \Drupal\field\FieldConfigInterface $field_conf */
+  $field_conf = $form_state->getFormObject()->getEntity();
+  $fields_mapping = $form_state->getValue('external_entities_mapping_fields');
+  $conf = [];
+  foreach ($fields_mapping as $key => $value) {
+    $conf[$key] = $value;
+  }
+  if (!empty($conf)) {
+    $field_conf->setThirdPartySetting('external_entities', _external_entities_name_mapping_settings($field_conf, $field_conf->getName()), $conf);
+    $field_conf->save();
+  }
+}
+
+/**
+ * Retrieve a name for configuration third settings name.
+ *
+ * @param \Drupal\field\FieldConfigInterface $field
+ *   Field.
+ * @param $key
+ *   Name of key.
+ *
+ * @return string
+ */
+function _external_entities_name_mapping_settings($field, $key) {
+  return implode("-", [
+    $field->getTargetEntityTypeId(),
+    $field->getTargetBundle(),
+    $key
+  ]);
 }
