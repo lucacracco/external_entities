@@ -5,13 +5,13 @@ namespace Drupal\external_entities\Plugin\ExternalEntityStorageConnection;
 use Drupal\external_entities\Plugin\HttpClientBase;
 
 /**
- * REST implementation of an external entity storage connection.
+ * Views REST implementation of an external entity storage connection.
  *
  * @ExternalEntityStorageConnection(
- *   id = "rest_client",
+ *   id = "views_rest_client",
  *   provider = "external_entities",
- *   name = "REST",
- *   description = "REST implementation of an external entity storage connection",
+ *   name = "Views REST",
+ *   description = "REST implementation of an external entity storage connection specific for Views data export",
  *   settings = {
  *    "endpoint" = "",
  *    "header_name" = NULL,
@@ -21,8 +21,8 @@ use Drupal\external_entities\Plugin\HttpClientBase;
  *   },
  * )
  */
-class RestClient extends HttpClientBase {
 
+class ViewsRestClient extends HttpClientBase {
   /**
    * {@inheritdoc}
    */
@@ -43,7 +43,6 @@ class RestClient extends HttpClientBase {
     // Retrieve and build options call.
     $options = [
       'headers' => $this->getHttpHeaders(),
-      'query' => [],
     ];
     if ($this->configuration['single']) {
       $options['query'] += $this->configuration['single'];
@@ -63,7 +62,7 @@ class RestClient extends HttpClientBase {
       ->decode($body);
 
     // Retrieve result object.
-    $result = (object) $result;
+    $result = (object) $result[0];
     return $result;
   }
 
@@ -96,7 +95,7 @@ class RestClient extends HttpClientBase {
     // @todo: is it standard REST to return the new entity?
     $object = (object) $this->decoder->getDecoder($this->externalEntityType->getFormat())
       ->decode($response->getBody());
-    $entity->mapFromStorageRecords($object);
+    $entity->mapObject($object);
     return $result;
   }
 
@@ -130,5 +129,4 @@ class RestClient extends HttpClientBase {
     }
     return $results;
   }
-
 }
